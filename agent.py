@@ -24,7 +24,7 @@ def get_liminal_prompts():
         "Output strictly in valid JSON format like: {\"scenes\": [{\"title\": \"...\", \"description\": \"...\", \"image_prompt\": \"...\"}]}"
     )
     
-   data = {
+    data = {
         "model": "meta-llama/llama-3-8b-instruct:free",
         "messages": [{"role": "system", "content": system_msg}],
         "response_format": {"type": "json_object"}
