@@ -24,8 +24,7 @@ def get_liminal_prompts():
         "Output strictly in valid JSON format like: {\"scenes\": [{\"title\": \"...\", \"description\": \"...\", \"image_prompt\": \"...\"}]}"
     )
     
-    # 💡 더 안정적인 특정 무료 모델(Llama 3 8B)로 변경
-    data = {
+   data = {
         "model": "meta-llama/llama-3-8b-instruct:free",
         "messages": [{"role": "system", "content": system_msg}],
         "response_format": {"type": "json_object"}
