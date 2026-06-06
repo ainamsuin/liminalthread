@@ -10,7 +10,8 @@ TG_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
 def get_active_free_models():
     """1. OpenRouter에서 무료 모델을 가져와 최신/고성능 순으로 정렬합니다."""
-    url = "https://api.openrouter.ai/api/v1/models"
+    # 💡 오타 수정: api.openrouter.ai -> openrouter.ai
+    url = "https://openrouter.ai/api/v1/models"
     try:
         response = requests.get(url, timeout=10)
         if response.status_code == 200:
@@ -18,28 +19,26 @@ def get_active_free_models():
             # 무료 모델만 필터링
             free_models_data = [m for m in all_models if ':free' in m['id']]
             
-            # 🔥 고성능/최신 모델 판별을 위한 정렬 키 설정 함수
+            # 고성능/최신 모델 판별을 위한 정렬 키 설정 함수
             def evaluate_model_performance(model):
                 model_id = model['id'].lower()
                 context_length = model.get('context_length', 0)
                 
-                # 2026년 현재 가장 성능이 뛰어난 무료 오픈소스 제품군 가중치 부여
                 priority_score = 0
                 if 'qwen-2.5' in model_id:
-                    priority_score = 50  # 코딩 및 복잡한 JSON 구조 생성 탁월
+                    priority_score = 50
                 elif 'llama-3.1' in model_id or 'llama-3.2' in model_id:
-                    priority_score = 40  # 추론 능력 및 텍스트 퀄리티 우수
+                    priority_score = 40
                 elif 'gemma-2' in model_id:
-                    priority_score = 30  # 구글의 최신 경량 고성능 모델
+                    priority_score = 30
                 elif 'phi-3' in model_id:
-                    priority_score = 20  # MS의 고성능 소형 모델
+                    priority_score = 20
                 elif 'llama-3' in model_id:
-                    priority_score = 10  # 구형 메타 모델
+                    priority_score = 10
                 
-                # (가중치 점수, 컨텍스트 길이) 순으로 튜플을 반환하여 높은 순으로 정렬되게 함
                 return (priority_score, context_length)
             
-            # 정렬 기준을 적용하여 내림차순(최신/고성능 우선) 정렬
+            # 정렬 기준을 적용하여 내림차순 정렬
             free_models_data.sort(key=evaluate_model_performance, reverse=True)
             
             sorted_ids = [m['id'] for m in free_models_data]
@@ -50,8 +49,8 @@ def get_active_free_models():
     except Exception as e:
         print(f"⚠️ 무료 모델 목록 조회 및 정렬 중 오류 발생: {e}")
     
-    # 실패 시 안전장치용 기본 리스트
-    return ["google/gemma-2-9b-it:free", "meta-llama/llama-3.1-8b-instruct:free"]
+    # 완전히 실패했을 때를 대비한 범용 free 라우터 백업
+    return ["openrouter/free"]
 
 def get_liminal_prompts():
     """2. 최신 고성능 순으로 정렬된 모델들을 순차적으로 실행합니다."""
