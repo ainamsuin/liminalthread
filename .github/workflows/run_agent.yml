@@ -2,7 +2,7 @@ name: Daily Liminal Space Agent
 
 on:
   schedule:
-    - cron: '0 12 * * *' # UTC 기준 12:00 = 한국 시간(KST) 저녁 9:00
+    - cron: '0 11 * * *' # UTC 기준 11:00 = 한국 시간(KST) 저녁 8:00
   workflow_dispatch: # 수동으로 원할 때 즉시 실행 버튼 활성화
 
 jobs:
