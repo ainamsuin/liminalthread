@@ -45,7 +45,7 @@ def get_active_free_models():
     return ["openrouter/free"]
 
 def get_liminal_prompts():
-    """2. 전송해주신 시네마틱 리미널 스페이스 마스터 가이드를 완벽히 가두어 5개의 독창적인 장면을 설계합니다."""
+    """2. 그래픽 티를 빼고 철저한 실사 카메라 스펙으로 무장한 8초 비디오 프롬프트를 생성합니다."""
     free_models = get_active_free_models()
     
     url = "https://openrouter.ai/api/v1/chat/completions"
@@ -56,28 +56,27 @@ def get_liminal_prompts():
         "X-Title": "Liminal Agent"
     }
     
-    # 💡 시스템 프롬프트 내부에 사용자의 '시네마틱 리미널 룰북'을 통째로 박아 넣었습니다.
+    # 💡 극대화된 실사 표현을 위한 안티 CGI 프롬프트 엔지니어링 지시문 설계
     system_msg = (
-        "You are an expert cinematic liminal-space filmmaker. "
-        "Your sole purpose is to create scenes that evoke nostalgia, unease, solitude, and the feeling of being trapped between places, times, or realities.\n\n"
-        "--- CORE RULES & STYLE GUIDE ---\n"
-        "Core Principles: Familiar but strangely empty, Realistic and believable, Abandoned without obvious signs of disaster, Quiet and emotionally distant, Suspended in time, Devoid of human presence.\n"
-        "Viewer Feelings: 'I've been here before.', 'Something feels wrong.', 'Why is nobody here?', 'This place shouldn't be empty.'\n"
-        "Environment Design: Empty shopping malls, Vacant office buildings, School hallways, Hotel corridors, Parking garages, Indoor playgrounds, Airports, Subway stations, Apartment hallways, Public swimming pools, Waiting rooms, Fast food restaurants, Arcades, Grocery stores, Convention centers.\n"
-        "Environment Appearance: Recently occupied, Maintained but neglected, Artificially lit, Quiet and isolated. (Avoid: Horror monsters, Blood, Violence, Zombies, Ghosts, Jump scares, Explicit supernatural elements. The discomfort must emerge from the environment itself.)\n"
-        "Cinematography: Slow camera movement, Long uninterrupted shots, Static framing, Smooth dolly shots, Wide-angle lenses, Symmetrical composition, Deep perspective corridors, Lingering camera pauses. (Avoid: Fast cuts, Handheld shake, Action sequences, Dramatic camera movements. Camera should move as if exploring an abandoned memory.)\n"
-        "Lighting: Fluorescent lighting, Overexposed windows, Sodium-vapor street lights, Dim yellow indoor lights, Soft fog diffusion, Uneven illumination. (Lighting should feel: Artificial, Clinical, Slightly outdated.)\n"
-        "Sound Design Concept: HVAC hum, Fluorescent buzz, Air conditioning noise, Distant ventilation sounds, Echoing footsteps, Electrical hum, Ambient room tone. (Avoid: Music, Dialogue, Narration. Silence should be a character.)\n"
-        "Visual Characteristics: Empty space, Repetition, Long hallways, Endless corridors, Carpet patterns, Fluorescent reflections, Slight image softness, Mild film grain, Analog camera imperfections. Color palette: Muted beige, Pale yellow, Faded green, Soft blue, Desaturated colors.\n"
-        "Temporal Distortion: Scenes should feel disconnected from normal time (Eternal afternoon, Midnight with lights still on, Endless closing hours, Weekend without visitors, Forgotten holiday atmosphere. Avoid visible clocks whenever possible.)\n"
-        "Emotional Goal: Nostalgia, Isolation, Dream-like familiarity, Existential uncertainty, Quiet melancholy. Never create fear through threats. Create unease through emptiness.\n"
-        "Output Quality: Ultra-realistic cinematic footage, 4K, Photorealistic, Real-world architecture, Natural materials, Accurate reflections, Realistic lighting behavior. The environment must look genuinely captured by a camera rather than computer generated. Early 2000s atmosphere, nostalgic architecture, uncanny emptiness, realistic VHS softness, endless silence, dreamcore aesthetic, photorealistic cinematic liminal space.\n\n"
+        "You are an expert cinematic liminal-space filmmaker directing raw, unedited master footage.\n\n"
+        "--- CRITICAL REALISM MANDATE (ANTI-CGI Rules) ---\n"
+        "DO NOT use words like 'photorealistic', 'ultra-realistic', '4K', 'hyper-realistic', '8K', or '3D render'. These cause rendering artifacts. "
+        "Instead, force raw reality by describing camera mechanics, analog flaws, and physical imperfections.\n\n"
+        "Core Principles: Familiar but strangely empty, realistic and grounded, abandoned but maintained, suspended in time, devoid of humans.\n"
+        "Environment Design: Empty shopping malls, vacant office buildings, school hallways, hotel corridors, parking garages, indoor playgrounds, airports, subway stations, public swimming pools, fast food restaurants.\n"
+        "Cinematography (8-second continuous progression): Slow uninterrupted 8-second camera movement, steady dolly, static framing, or wide-angle lens. Subtle handheld breathing texture or organic camera drift is encouraged. No fast cuts.\n"
+        "Lighting & Color: Clinical, buzzing fluorescent tubes, dim outdated yellow halogen lights, uneven illumination with natural shadow decay. Palette of muted beige, pale yellow, faded green, or soft desaturated blue. Natural contrast.\n"
+        "Camera Mechanics & Imperfections to ALWAYS Include:\n"
+        "- Captured on consumer camcorder, amateur smartphone video snapshot, or 35mm film stock (Fujicolor Superia / Kodak Portra).\n"
+        "- Authentic lens properties: mild lens dust, minor smudges on the glass, subtle chromatic aberration at frame edges, realistic barrel distortion from wide-angle lenses.\n"
+        "- Image textures: realistic VHS softness, analog tape hiss artifacts, interlaced lines, mild organic film grain, natural low-light noise instead of clean digital gradients.\n"
+        "- Physical world details: scuffed linoleum floors, faint dust motes drifting in light beams, minor water stains, matte material finishes instead of perfect CGI gloss reflections.\n\n"
         "--- TASK INSTRUCTIONS ---\n"
-        "1. Generate EXACTLY 5 distinct cinematic scenes based on the comprehensive rules above.\n"
-        "2. To ensure variety, select a few different locations from the Environment Design pool across the 5 scenes.\n"
-        "3. For each scene, the 'image_prompt' MUST be written in English. It should be an expanded, dense, descriptive prompt optimized for FLUX that integrates the camera instructions, textures, exact colors, and lighting constraints given in the guide.\n"
-        "4. Provide a beautifully haunting narrative summary in Korean for the 'description' field.\n"
-        "5. Output must be strictly valid JSON matching this schema: {\"scenes\": [{\"title\": \"...\", \"description\": \"...\", \"image_prompt\": \"...\"}]}"
+        "1. Generate EXACTLY 5 distinct video concepts. Ensure location variety across scenes.\n"
+        "2. The 'video_prompt' MUST be written entirely in ENGLISH as an 8-second text-to-video prompt. Explicitly map out the 8-second continuous timeline and include the raw analog camera specs mentioned above.\n"
+        "3. Provide a beautifully haunting narrative summary in Korean for the 'description' field.\n"
+        "4. Output must be strictly valid JSON matching this schema:\n"
+        "{\"scenes\": [{\"title\": \"...\", \"description\": \"(Korean)\", \"video_prompt\": \"(8-second English raw camera prompt)\"}]}"
     )
     
     for model_id in free_models:
@@ -96,7 +95,7 @@ def get_liminal_prompts():
                 res_json = response.json()
                 if 'choices' in res_json:
                     raw_content = res_json['choices'][0]['message']['content']
-                    print(f"✅ [성공] 최상위 모델 {model_id}이(가) 영화적 리미널 스페이스 5개 씬을 빌드했습니다.")
+                    print(f"✅ [성공] 최상위 모델 {model_id}이(가) 실사화 필터링이 완료된 프롬프트를 빌드했습니다.")
                     return json.loads(raw_content)['scenes']
             
             print(f"⚠️ [우회] {model_id} 에러 발생 (코드 {response.status_code}). 다음 차선책 모델로 이동.")
@@ -109,7 +108,7 @@ def get_liminal_prompts():
     return []
 
 def generate_image(prompt, index):
-    """3. Hugging Face 최신 라우터 엔드포인트를 사용하여 FLUX 이미지 생성"""
+    """3. 비디오 프롬프트를 기반으로 대표 스틸 이미지 렌더링"""
     model_url = "https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell"
     headers = {"Authorization": f"Bearer {HF_KEY}"}
     
@@ -121,13 +120,13 @@ def generate_image(prompt, index):
                 f.write(response.content)
             return file_path
         else:
-            print(f"⚠️ 이미지 생성 실패 (코드 {response.status_code}): {response.text}")
+            print(f"⚠️ 프리뷰 이미지 생성 실패 (코드 {response.status_code}): {response.text}")
     except Exception as e:
         print(f"⚠️ 이미지 API 호출 중 예외 발생: {e}")
     return None
 
 def send_to_telegram(title, desc, img_path):
-    """4. 텔레그램으로 고화질 이미지와 분위기 설명 전송"""
+    """4. 텔레그램으로 대표 컷과 영상 연출 설명 전송"""
     caption = f"🌌 *{title}*\n\n{desc}"
     
     if img_path and os.path.exists(img_path):
@@ -136,7 +135,7 @@ def send_to_telegram(title, desc, img_path):
             res = requests.post(url, data={"chat_id": TG_CHAT_ID, "caption": caption, "parse_mode": "Markdown"}, files={"photo": photo})
     else:
         url = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
-        res = requests.post(url, data={"chat_id": TG_CHAT_ID, "text": f"{caption}\n(이미지 생성 실패)", "parse_mode": "Markdown"})
+        res = requests.post(url, data={"chat_id": TG_CHAT_ID, "text": f"{caption}\n(프리뷰 생성 실패)", "parse_mode": "Markdown"})
     
     if res.status_code != 200:
         print(f"❌ 텔레그램 전송 실패 (코드 {res.status_code}): {res.text}")
@@ -148,7 +147,7 @@ if __name__ == "__main__":
             print("❌ 모든 무료 모델 정렬 리스트를 순회했으나 응답 확보에 실패했습니다.")
         else:
             for i, scene in enumerate(scenes):
-                img_file = generate_image(scene['image_prompt'], i)
+                img_file = generate_image(scene['video_prompt'], i)
                 send_to_telegram(scene['title'], scene['description'], img_file)
                 time.sleep(3)
             print("🎉 모든 에이전트 임무 완료!")
