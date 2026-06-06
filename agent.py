@@ -10,37 +10,30 @@ TG_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
 def get_active_free_models():
     """1. OpenRouter에서 무료 모델을 가져와 최신/고성능 순으로 정렬합니다."""
-    # 💡 오타 수정: api.openrouter.ai -> openrouter.ai
     url = "https://openrouter.ai/api/v1/models"
     try:
         response = requests.get(url, timeout=10)
         if response.status_code == 200:
             all_models = response.json().get('data', [])
-            # 무료 모델만 필터링
             free_models_data = [m for m in all_models if ':free' in m['id']]
             
-            # 고성능/최신 모델 판별을 위한 정렬 키 설정 함수
             def evaluate_model_performance(model):
                 model_id = model['id'].lower()
                 context_length = model.get('context_length', 0)
                 
                 priority_score = 0
-                if 'qwen-2.5' in model_id:
+                if 'qwen-2.5' in model_id or 'qwen-3' in model_id:
                     priority_score = 50
-                elif 'llama-3.1' in model_id or 'llama-3.2' in model_id:
+                elif 'llama-3.3' in model_id or 'llama-3.1' in model_id or 'llama-3.2' in model_id:
                     priority_score = 40
                 elif 'gemma-2' in model_id:
                     priority_score = 30
                 elif 'phi-3' in model_id:
                     priority_score = 20
-                elif 'llama-3' in model_id:
-                    priority_score = 10
                 
                 return (priority_score, context_length)
             
-            # 정렬 기준을 적용하여 내림차순 정렬
             free_models_data.sort(key=evaluate_model_performance, reverse=True)
-            
             sorted_ids = [m['id'] for m in free_models_data]
             print(f"🎯 [정렬 완료] 최신/고성능 탑재 1순위 모델: {sorted_ids[0] if sorted_ids else '없음'}")
             print(f"📋 상위 우선순위 5개 모델 목록: {sorted_ids[:5]}")
@@ -49,11 +42,10 @@ def get_active_free_models():
     except Exception as e:
         print(f"⚠️ 무료 모델 목록 조회 및 정렬 중 오류 발생: {e}")
     
-    # 완전히 실패했을 때를 대비한 범용 free 라우터 백업
     return ["openrouter/free"]
 
 def get_liminal_prompts():
-    """2. 최신 고성능 순으로 정렬된 모델들을 순차적으로 실행합니다."""
+    """2. 하나의 통일된 대주제 하에 5개의 서로 다른 디테일한 장면을 생성합니다."""
     free_models = get_active_free_models()
     
     url = "https://openrouter.ai/api/v1/chat/completions"
@@ -64,11 +56,17 @@ def get_liminal_prompts():
         "X-Title": "Liminal Agent"
     }
     
+    # 💡 요구사항 반영: 단일 기획/공간 컨셉 유지 + FLUX 전용 고해상도 영문 프롬프트 디테일링 명시
     system_msg = (
-        "You are an AI agent generating Liminal Space concepts. "
-        "Generate exactly 5 distinct, eerie, nostalgic liminal space scenes. "
-        "For each, provide a 'title', a 'description' (in Korean), and a detailed 'image_prompt' (in English). "
-        "Output strictly in valid JSON format like: {\"scenes\": [{\"title\": \"...\", \"description\": \"...\", \"image_prompt\": \"...\"}]}"
+        "You are an expert AI agent specializing in generating high-quality concept art prompts for Liminal Spaces.\n"
+        "CRITICAL INSTRUCTIONS:\n"
+        "1. Focus entirely on EXACTLY ONE cohesive theme or location for this session (e.g., an eerie abandoned 90s indoor shopping mall, an endless subterranean concrete pool complex, or a nostalgic empty motel corridor).\n"
+        "2. Generate EXACTLY 5 distinct scenes, angles, or sub-locations that exist strictly WITHIN that single chosen theme.\n"
+        "3. For each scene, provide:\n"
+        "   - 'title': A short, atmospheric title.\n"
+        "   - 'description': An evocative narrative summary written in Korean.\n"
+        "   - 'image_prompt': A highly detailed, immersive, long English prompt optimized for advanced text-to-image models like FLUX. Specify exact lighting conditions (e.g., harsh buzzing fluorescent lights, dim yellow tint, low-res flash photography), camera types/angles (e.g., CCTV angle, disposable camera look), textures (e.g., wet tiles, damp carpets), and environmental elements to amplify the unsettling, vacant, and nostalgic liminal atmosphere.\n"
+        "4. Output must be strictly valid JSON matching this schema: {\"scenes\": [{\"title\": \"...\", \"description\": \"...\", \"image_prompt\": \"...\"}]}"
     )
     
     for model_id in free_models:
@@ -100,12 +98,14 @@ def get_liminal_prompts():
     return []
 
 def generate_image(prompt, index):
-    """3. Hugging Face 무료 추론 API를 사용하여 이미지 생성"""
-    model_url = "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell"
+    """3. Hugging Face 무료 추론 API를 사용하여 이미지 생성 (2026 최신 라우터 이관 반영)"""
+    # 💡 443 팅김 에러 해결: 구형 api-inference 도메인 폐쇄에 따른 신규 라우터 주소로 전면 교체
+    model_url = "https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell"
     headers = {"Authorization": f"Bearer {HF_KEY}"}
     
     try:
-        response = requests.post(model_url, headers=headers, json={"inputs": prompt}, timeout=30)
+        # 이미지 생성이 정교해짐에 따라 타임아웃을 60초로 넉넉하게 확장
+        response = requests.post(model_url, headers=headers, json={"inputs": prompt}, timeout=60)
         if response.status_code == 200:
             file_path = f"liminal_{index}.png"
             with open(file_path, "wb") as f:
