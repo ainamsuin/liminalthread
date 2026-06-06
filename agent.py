@@ -13,7 +13,7 @@ def get_liminal_prompts():
     headers = {
         "Authorization": f"Bearer {OPENROUTER_KEY}",
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://github.com", # OpenRouter 필수 권장 헤더
+        "HTTP-Referer": "https://github.com",
         "X-Title": "Liminal Agent"
     }
     
@@ -24,8 +24,9 @@ def get_liminal_prompts():
         "Output strictly in valid JSON format like: {\"scenes\": [{\"title\": \"...\", \"description\": \"...\", \"image_prompt\": \"...\"}]}"
     )
     
+    # 💡 404 에러를 유발하던 구형 주소를 완전히 작동하는 Llama 3.1 무료 버전으로 변경했습니다.
     data = {
-        "model": "meta-llama/llama-3-8b-instruct:free",
+        "model": "meta-llama/llama-3.1-8b-instruct:free",
         "messages": [{"role": "system", "content": system_msg}],
         "response_format": {"type": "json_object"}
     }
@@ -38,7 +39,6 @@ def get_liminal_prompts():
         
     res_json = response.json()
     
-    # 💡 'choices' 키가 없는 경우(에러 발생 시) 응답 전문을 출력하도록 안전장치 추가
     if 'choices' not in res_json:
         print(f"❌ OpenRouter가 에러를 반환했습니다. 반환된 데이터:\n{json.dumps(res_json, indent=2)}")
         return []
