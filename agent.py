@@ -44,7 +44,7 @@ def get_active_free_models():
     return ["openrouter/free"]
 
 def get_liminal_prompts():
-    """2. 카메라 구도의 다양성을 극대화하여 5개의 유기적인 연출 컷을 생성합니다."""
+    """2. 비현실적 왜곡 요소와 시리즈 전체 훅 타이틀을 생성합니다."""
     free_models = get_active_free_models()
     
     url = "https://openrouter.ai/api/v1/chat/completions"
@@ -55,29 +55,34 @@ def get_liminal_prompts():
         "X-Title": "Liminal Agent"
     }
     
-    # 💡 5개 컷의 카메라 구도 다양화 지시문(Dynamic Camera Composition) 집중 주입
+    # 💡 현실과 비현실의 경계(Uncanny Boundary) 및 매력적인 숏폼 타이틀(Hook Title) 생성 지시문 주입
     system_msg = (
-        "You are an expert cinematic liminal-space filmmaker directing a unified, coherent 5-cut sequence or storyboard.\n\n"
-        "--- 🚨 CRITICAL MANDATE: SINGLE CONCEPT & SEQUENTIAL CUTS ---\n"
-        "1. Select EXACTLY ONE specific liminal space setting (e.g., ONE specific airport waiting lounge, ONE indoor playground) for the entire sequence.\n"
-        "2. Generate EXACTLY 5 sequential cuts inside that SAME environment. They must feel like parts of a single continuous short film.\n"
-        "3. ALL text fields ('title', 'description', 'video_prompt') MUST be strictly and entirely in ENGLISH. No Korean.\n\n"
-        "--- 🎥 DIVERSE CINEMATOGRAPHY & CAMERA ANGLES (AVOID MONOTONY) ---\n"
-        "To prevent visual boredom, each of the 5 cuts MUST use a distinctly different cinematic framing, angle, or movement style. Dynamically assign a unique technique to each cut from the following pool:\n"
-        "- Symmetrical Deep Dolly: Moving straight forward or backward precisely along the center axis of a long corridor.\n"
-        "- Slow Horizontal Pan: A slow, continuous 180-degree sweep from left to right, revealing the vast emptiness of the space.\n"
-        "- Ground-Level Low Angle: Camera skimming just inches above the scuffed floor, pointing slightly upward to make ceilings and lights feel looming, heavy, and oppressive.\n"
-        "- High-Angle Surveillance Fix: A static, unmoving overhead master shot resembling a security camera perspective, lingering with zero movement.\n"
-        "- Vertical Tilt or Jib Move: Slowly tilting down from the glaring fluorescent ceiling grids down to the empty furniture below, or tracking vertically upward.\n\n"
+        "You are an expert cinematic dreamcore/liminal filmmaker directing a 5-cut sequence that blurs the thin line between reality and unreality.\n\n"
+        "--- 🚨 CRITICAL HOOK & CONCEPT MANDATE ---\n"
+        "1. Create a compelling, clickbaity, high-interest overall video series title ('series_title') in English. It should trigger curiosity, nostalgia, or psychological unease (e.g., 'The Place You Visited in Your Dreams', 'Level 0: The Ceiling is Bleeding', 'An Architecture That Forgot Humans').\n"
+        "2. Select EXACTLY ONE environment for all 5 cuts to ensure seamless continuity.\n"
+        "3. ALL generated text fields MUST be entirely in ENGLISH. No Korean allowed.\n\n"
+        "--- 🌀 THE UNCANNY BOUNDARY (Reality vs Unreality) ---\n"
+        "The scene must not look like a normal empty room. It must feel subtly wrong, dream-like, and impossible, yet captured on a real analog camera. Inject spatial logic errors and architectural anomalies into each cut:\n"
+        "- Impossible Layouts: Hallways that repeat infinitely into pitch darkness, exit signs pointing toward dead-end blank walls, an escalator leading directly into a solid ceiling.\n"
+        "- Dream-logic Furniture: A room filled with hundreds of identical plastic school chairs facing a blank corner, a swimming pool where the water is perfectly static like glass but ripples from no source, doors stacked unnaturally side-by-side.\n"
+        "- Dissonant Atmosphere: Heavy, clinical light that seems to come from nowhere, shadows that do not align with the light sources, or a sense that spatial dimensions are expanding over time.\n\n"
+        "--- 🎥 DIVERSE CINEMATOGRAPHY (5 Distinct Camera Styles) ---\n"
+        "Assign a unique camera technique to each cut from this pool: Symmetrical Deep Dolly, Slow Horizontal Pan, Ground-Level Low Angle, High-Angle Surveillance Fix, Vertical Jib/Tilt.\n\n"
         "--- CRITICAL REALISM MANDATE (ANTI-CGI Rules) ---\n"
-        "DO NOT use words like 'photorealistic', 'ultra-realistic', '4K', 'hyper-realistic', '8K', or '3D render'. "
-        "Force raw reality using camera mechanics, analog flaws, and physical imperfections.\n"
-        "- Medium: Consumer camcorder footage, raw smartphone video artifact, or 35mm film stock (Fujicolor Superia).\n"
-        "- Flaws: Lens dust, minor smudges, chromatic aberration at edges, barrel distortion, realistic VHS softness, analog grain, low-light noise.\n"
-        "- Details: Scuffed linoleum, drifting dust motes, water stains, matte material textures instead of clean digital reflections.\n\n"
+        "DO NOT use words like 'photorealistic', '4K', '3D render'. Describe raw camera physics to force realism: consumer camcorder tape, 35mm film stock, lens dust, smudges, chromatic aberration, realistic VHS softness, analog tape hiss, low-light noise.\n\n"
         "--- OUTPUT FORMAT ---\n"
-        "Output must be strictly valid JSON matching this schema (all values must be in English):\n"
-        "{\"scenes\": [{\"title\": \"Cut [X]: [Specific Camera Style and Location Details]\", \"description\": \"[Detailed English narrative summary of this cut's camera movement and atmosphere]\", \"video_prompt\": \"[8-second English text-to-video prompt with the specific camera technique and raw analog imperfections]\"}]}"
+        "Output must be strictly valid JSON matching this schema:\n"
+        "{\n"
+        "  \"series_title\": \"[Intriguing, high-interest viral video title]\",\n"
+        "  \"scenes\": [\n"
+        "    {\n"
+        "      \"title\": \"Cut [X]: [Camera Technique & Specific Room Detail]\",\n"
+        "      \"description\": \"[Detailed English summary of the eerie spatial anomaly and camera motion]\",\n"
+        "      \"video_prompt\": \"[8-second English text-to-video prompt blending uncanny geometry with raw analog camera artifacts]\"\n"
+        "    }\n"
+        "  ]\n"
+        "}"
     )
     
     for model_id in free_models:
@@ -93,13 +98,13 @@ def get_liminal_prompts():
                 res_json = response.json()
                 if 'choices' in res_json:
                     raw_content = res_json['choices'][0]['message']['content']
-                    print(f"✅ [성공] {model_id} 모델이 다양한 카메라 앵글을 반영한 5컷 시퀀스를 기획했습니다.")
-                    return json.loads(raw_content)['scenes']
+                    print(f"✅ [성공] {model_id} 모델이 비현실적 컨셉과 훅 타이틀 생성을 마쳤습니다.")
+                    return json.loads(raw_content)
             print(f"⚠️ [우회] {model_id} 에러 발생 (코드 {response.status_code}). 차선책으로 이동.")
         except Exception as e:
             print(f"⚠️ {model_id} 예외 발생: {e}. 차선책으로 이동.")
         time.sleep(1)
-    return []
+    return {}
 
 def generate_image(prompt, index):
     """3. 429 우회 재시도 및 백업 모델 아키텍처가 탑재된 이미지 렌더링 함수"""
@@ -123,7 +128,7 @@ def generate_image(prompt, index):
                     file_path = f"liminal_{index}.png"
                     with open(file_path, "wb") as f:
                         f.write(response.content)
-                    print(f"✅ [렌더링 성공] {model_path}를 통해 프리뷰 이미지를 확보했습니다.")
+                    print(f"✅ [렌더링 성공] {model_path}를 통해 이미지를 확보했습니다.")
                     return file_path
                 
                 elif response.status_code == 429:
@@ -142,9 +147,9 @@ def generate_image(prompt, index):
     
     return None
 
-def send_to_telegram(title, desc, img_path):
-    """4. 텔레그램으로 완벽한 영문 프롬프트 스펙과 프리뷰 컷 전송"""
-    caption = f"🌌 *{title}*\n\n*Description:*\n{desc}"
+def send_to_telegram(series_title, title, desc, img_path):
+    """4. 텔레그램으로 최종 흥미 유발 타이틀과 컷 가이드 전송"""
+    caption = f"🔥 *Video Title:* {series_title}\n\n🎬 *{title}*\n*Description:* {desc}"
     
     if img_path and os.path.exists(img_path):
         url = f"https://api.telegram.org/bot{TG_TOKEN}/sendPhoto"
@@ -152,20 +157,23 @@ def send_to_telegram(title, desc, img_path):
             res = requests.post(url, data={"chat_id": TG_CHAT_ID, "caption": caption, "parse_mode": "Markdown"}, files={"photo": photo})
     else:
         url = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
-        res = requests.post(url, data={"chat_id": TG_CHAT_ID, "text": f"{caption}\n⚠️ (트래픽 폭주로 프리뷰 이미지 생성 실패, 프롬프트 가이드는 정상 전송)", "parse_mode": "Markdown"})
+        res = requests.post(url, data={"chat_id": TG_CHAT_ID, "text": f"{caption}\n⚠️ (Image Generaton Timeout/429)", "parse_mode": "Markdown"})
     
     if res.status_code != 200:
         print(f"❌ 텔레그램 전송 실패 (코드 {res.status_code}): {res.text}")
 
 if __name__ == "__main__":
     try:
-        scenes = get_liminal_prompts()
+        res_data = get_liminal_prompts()
+        scenes = res_data.get('scenes', [])
+        series_title = res_data.get('series_title', 'The Place Forgotten by Time')
+        
         if not scenes:
-            print("❌ 모든 무료 모델 정렬 리스트를 순회했으나 응답 확보에 실패했습니다.")
+            print("❌ 모든 무료 모델 리스트를 순회했으나 프롬프트 데이터 확보에 실패했습니다.")
         else:
             for i, scene in enumerate(scenes):
                 img_file = generate_image(scene['video_prompt'], i)
-                send_to_telegram(scene['title'], scene['description'], img_file)
+                send_to_telegram(series_title, scene['title'], scene['description'], img_file)
                 time.sleep(6)
             print("🎉 모든 에이전트 임무 완료!")
     except Exception as e:
