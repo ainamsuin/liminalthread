@@ -44,7 +44,7 @@ def get_active_free_models():
     return ["openrouter/free"]
 
 def get_liminal_prompts():
-    """2. 마스터 가이드를 기반으로 8초간의 흐름을 가진 영문 영상 제작 프롬프트를 생성합니다."""
+    """2. 카메라 구도의 다양성을 극대화하여 5개의 유기적인 연출 컷을 생성합니다."""
     free_models = get_active_free_models()
     
     url = "https://openrouter.ai/api/v1/chat/completions"
@@ -55,29 +55,29 @@ def get_liminal_prompts():
         "X-Title": "Liminal Agent"
     }
     
+    # 💡 5개 컷의 카메라 구도 다양화 지시문(Dynamic Camera Composition) 집중 주입
     system_msg = (
-        "You are an expert cinematic liminal-space filmmaker directing raw, unedited master footage.\n\n"
+        "You are an expert cinematic liminal-space filmmaker directing a unified, coherent 5-cut sequence or storyboard.\n\n"
+        "--- 🚨 CRITICAL MANDATE: SINGLE CONCEPT & SEQUENTIAL CUTS ---\n"
+        "1. Select EXACTLY ONE specific liminal space setting (e.g., ONE specific airport waiting lounge, ONE indoor playground) for the entire sequence.\n"
+        "2. Generate EXACTLY 5 sequential cuts inside that SAME environment. They must feel like parts of a single continuous short film.\n"
+        "3. ALL text fields ('title', 'description', 'video_prompt') MUST be strictly and entirely in ENGLISH. No Korean.\n\n"
+        "--- 🎥 DIVERSE CINEMATOGRAPHY & CAMERA ANGLES (AVOID MONOTONY) ---\n"
+        "To prevent visual boredom, each of the 5 cuts MUST use a distinctly different cinematic framing, angle, or movement style. Dynamically assign a unique technique to each cut from the following pool:\n"
+        "- Symmetrical Deep Dolly: Moving straight forward or backward precisely along the center axis of a long corridor.\n"
+        "- Slow Horizontal Pan: A slow, continuous 180-degree sweep from left to right, revealing the vast emptiness of the space.\n"
+        "- Ground-Level Low Angle: Camera skimming just inches above the scuffed floor, pointing slightly upward to make ceilings and lights feel looming, heavy, and oppressive.\n"
+        "- High-Angle Surveillance Fix: A static, unmoving overhead master shot resembling a security camera perspective, lingering with zero movement.\n"
+        "- Vertical Tilt or Jib Move: Slowly tilting down from the glaring fluorescent ceiling grids down to the empty furniture below, or tracking vertically upward.\n\n"
         "--- CRITICAL REALISM MANDATE (ANTI-CGI Rules) ---\n"
-        "DO NOT use words like 'photorealistic', 'ultra-realistic', '4K', 'hyper-realistic', '8K', or '3D render'. These cause rendering artifacts. "
-        "Instead, force raw reality by describing camera mechanics, analog flaws, and physical imperfections.\n\n"
-        "Core Principles: Familiar but strangely empty, realistic and grounded, abandoned but maintained, suspended in time, devoid of humans.\n"
-        "Environment Design: Empty shopping malls, vacant office buildings, school hallways, hotel corridors, parking garages, indoor playgrounds, airports, subway stations, public swimming pools, fast food restaurants.\n"
-        "Cinematography (8-second continuous progression): Slow uninterrupted 8-second camera movement, steady dolly, static framing, or wide-angle lens. Subtle handheld breathing texture or organic camera drift is encouraged. No fast cuts.\n"
-        "Lighting & Color: Clinical, buzzing fluorescent tubes, dim outdated yellow halogen lights, uneven illumination with natural shadow decay. Palette of muted beige, pale yellow, faded green, or soft desaturated blue. Natural contrast.\n"
-        "Camera Mechanics & Imperfections to ALWAYS Include:\n"
-        "- Captured on consumer camcorder, amateur smartphone video snapshot, or 35mm film stock (Fujicolor Superia / Kodak Portra).\n"
-        "- Authentic lens properties: mild lens dust, minor smudges on the glass, subtle chromatic aberration at frame edges, realistic barrel distortion from wide-angle lenses.\n"
-        "- Image textures: realistic VHS softness, analog tape hiss artifacts, interlaced lines, mild organic film grain, natural low-light noise instead of clean digital gradients.\n"
-        "- Physical world details: scuffed linoleum floors, faint dust motes drifting in light beams, minor water stains, matte material finishes instead of perfect CGI gloss reflections.\n\n"
-        "--- 🔥 VIDEO GENERATION MANDATE ---\n"
-        "The generated prompt is NOT a static image description. It must be written strictly as a TEXT-TO-VIDEO generation prompt designed for an 8-second video clip (optimized for Sora, Runway Gen-3, Kling).\n"
-        "1. The 'video_prompt' MUST be written entirely in ENGLISH.\n"
-        "2. It must explicitly dictate a seamless, continuous 8-second camera progression. Describe the precise motion.\n"
-        "3. Incorporate the pacing of time. Describe how atmospheric details transpire smoothly over the 8-second duration.\n"
-        "4. Avoid ambient text interruptions; ensure all aesthetic markers (VHS softness, film grain) are integrated into the prompt text naturally.\n\n"
+        "DO NOT use words like 'photorealistic', 'ultra-realistic', '4K', 'hyper-realistic', '8K', or '3D render'. "
+        "Force raw reality using camera mechanics, analog flaws, and physical imperfections.\n"
+        "- Medium: Consumer camcorder footage, raw smartphone video artifact, or 35mm film stock (Fujicolor Superia).\n"
+        "- Flaws: Lens dust, minor smudges, chromatic aberration at edges, barrel distortion, realistic VHS softness, analog grain, low-light noise.\n"
+        "- Details: Scuffed linoleum, drifting dust motes, water stains, matte material textures instead of clean digital reflections.\n\n"
         "--- OUTPUT FORMAT ---\n"
-        "Generate EXACTLY 5 distinct video concepts. Output must be strictly valid JSON matching this schema:\n"
-        "{\"scenes\": [{\"title\": \"...\", \"description\": \"(Korean narrative summary)\", \"video_prompt\": \"(8-second English text-to-video prompt)\"}]}"
+        "Output must be strictly valid JSON matching this schema (all values must be in English):\n"
+        "{\"scenes\": [{\"title\": \"Cut [X]: [Specific Camera Style and Location Details]\", \"description\": \"[Detailed English narrative summary of this cut's camera movement and atmosphere]\", \"video_prompt\": \"[8-second English text-to-video prompt with the specific camera technique and raw analog imperfections]\"}]}"
     )
     
     for model_id in free_models:
@@ -93,7 +93,7 @@ def get_liminal_prompts():
                 res_json = response.json()
                 if 'choices' in res_json:
                     raw_content = res_json['choices'][0]['message']['content']
-                    print(f"✅ [성공] {model_id} 모델이 프롬프트를 성공적으로 생성했습니다.")
+                    print(f"✅ [성공] {model_id} 모델이 다양한 카메라 앵글을 반영한 5컷 시퀀스를 기획했습니다.")
                     return json.loads(raw_content)['scenes']
             print(f"⚠️ [우회] {model_id} 에러 발생 (코드 {response.status_code}). 차선책으로 이동.")
         except Exception as e:
@@ -103,7 +103,6 @@ def get_liminal_prompts():
 
 def generate_image(prompt, index):
     """3. 429 우회 재시도 및 백업 모델 아키텍처가 탑재된 이미지 렌더링 함수"""
-    # FLUX가 막힐 경우를 대비해 허깅페이스 내 최고 품질의 실사 백업 라인업 구축
     target_models = [
         "black-forest-labs/FLUX.1-schnell",
         "stabilityai/stable-diffusion-xl-base-1.0",
@@ -124,11 +123,10 @@ def generate_image(prompt, index):
                     file_path = f"liminal_{index}.png"
                     with open(file_path, "wb") as f:
                         f.write(response.content)
-                    print(f"✅ [렌더링 성공] {model_path}를 통해 이미지를 확보했습니다.")
+                    print(f"✅ [렌더링 성공] {model_path}를 통해 프리뷰 이미지를 확보했습니다.")
                     return file_path
                 
                 elif response.status_code == 429:
-                    # 429 발견 시 지수 백오프 적용 (7초 -> 14초 -> 21초 대기)
                     wait_time = 7 * (attempt + 1)
                     print(f"⚠️ [Rate Limit 429] 허깅페이스 제한 감지. {wait_time}초 후 재시도합니다...")
                     time.sleep(wait_time)
@@ -145,8 +143,8 @@ def generate_image(prompt, index):
     return None
 
 def send_to_telegram(title, desc, img_path):
-    """4. 텔레그램으로 대표 컷과 영상 연출 설명 전송"""
-    caption = f"🌌 *{title}*\n\n{desc}"
+    """4. 텔레그램으로 완벽한 영문 프롬프트 스펙과 프리뷰 컷 전송"""
+    caption = f"🌌 *{title}*\n\n*Description:*\n{desc}"
     
     if img_path and os.path.exists(img_path):
         url = f"https://api.telegram.org/bot{TG_TOKEN}/sendPhoto"
@@ -168,7 +166,6 @@ if __name__ == "__main__":
             for i, scene in enumerate(scenes):
                 img_file = generate_image(scene['video_prompt'], i)
                 send_to_telegram(scene['title'], scene['description'], img_file)
-                # 연속 호출로 인한 429 방지를 위해 메인 루프 대기 시간 유연화 (기존 3초 -> 6초)
                 time.sleep(6)
             print("🎉 모든 에이전트 임무 완료!")
     except Exception as e:
