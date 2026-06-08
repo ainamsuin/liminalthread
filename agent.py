@@ -44,7 +44,7 @@ def get_active_free_models():
     return ["openrouter/free"]
 
 def get_liminal_prompts():
-    """2. 비현실적 왜곡 요소와 시리즈 전체 훅 타이틀을 생성합니다."""
+    """2. 거대한 스케일의 드림코어 서사를 가진 5단 구성 스토리보드를 빌드합니다."""
     free_models = get_active_free_models()
     
     url = "https://openrouter.ai/api/v1/chat/completions"
@@ -52,34 +52,39 @@ def get_liminal_prompts():
         "Authorization": f"Bearer {OPENROUTER_KEY}",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://github.com",
-        "X-Title": "Liminal Agent"
+        "X-Title": "Dreamcore Agent"
     }
     
-    # 💡 현실과 비현실의 경계(Uncanny Boundary) 및 매력적인 숏폼 타이틀(Hook Title) 생성 지시문 주입
+    # 💡 드림코어 서사, 스케일 확장, 정적 구도 허용 지시문 주입
     system_msg = (
-        "You are an expert cinematic dreamcore/liminal filmmaker directing a 5-cut sequence that blurs the thin line between reality and unreality.\n\n"
-        "--- 🚨 CRITICAL HOOK & CONCEPT MANDATE ---\n"
-        "1. Create a compelling, clickbaity, high-interest overall video series title ('series_title') in English. It should trigger curiosity, nostalgia, or psychological unease (e.g., 'The Place You Visited in Your Dreams', 'Level 0: The Ceiling is Bleeding', 'An Architecture That Forgot Humans').\n"
-        "2. Select EXACTLY ONE environment for all 5 cuts to ensure seamless continuity.\n"
-        "3. ALL generated text fields MUST be entirely in ENGLISH. No Korean allowed.\n\n"
-        "--- 🌀 THE UNCANNY BOUNDARY (Reality vs Unreality) ---\n"
-        "The scene must not look like a normal empty room. It must feel subtly wrong, dream-like, and impossible, yet captured on a real analog camera. Inject spatial logic errors and architectural anomalies into each cut:\n"
-        "- Impossible Layouts: Hallways that repeat infinitely into pitch darkness, exit signs pointing toward dead-end blank walls, an escalator leading directly into a solid ceiling.\n"
-        "- Dream-logic Furniture: A room filled with hundreds of identical plastic school chairs facing a blank corner, a swimming pool where the water is perfectly static like glass but ripples from no source, doors stacked unnaturally side-by-side.\n"
-        "- Dissonant Atmosphere: Heavy, clinical light that seems to come from nowhere, shadows that do not align with the light sources, or a sense that spatial dimensions are expanding over time.\n\n"
-        "--- 🎥 DIVERSE CINEMATOGRAPHY (5 Distinct Camera Styles) ---\n"
-        "Assign a unique camera technique to each cut from this pool: Symmetrical Deep Dolly, Slow Horizontal Pan, Ground-Level Low Angle, High-Angle Surveillance Fix, Vertical Jib/Tilt.\n\n"
-        "--- CRITICAL REALISM MANDATE (ANTI-CGI Rules) ---\n"
-        "DO NOT use words like 'photorealistic', '4K', '3D render'. Describe raw camera physics to force realism: consumer camcorder tape, 35mm film stock, lens dust, smudges, chromatic aberration, realistic VHS softness, analog tape hiss, low-light noise.\n\n"
+        "You are an expert cinematic Dreamcore and Weirdcore filmmaker. Your goal is to direct a beautifully haunting 5-cut narrative sequence that feels like a continuous journey through a surreal, impossible dreamscape.\n\n"
+        "--- 🚨 CRITICAL NARRATIVE & STORYLINE MANDATE 🚨 ---\n"
+        "1. The 5 cuts MUST form a single, linear narrative storyline or psychological progression. It should feel like a traveler walking deeper into a grand dream that gradually loses its connection to reality.\n"
+        "   - Cut 1: The Threshold (The entry point, familiar but unsettling)\n"
+        "   - Cut 2: The Expansion (The space opens up impossibly, revealing massive scale)\n"
+        "   - Cut 3: The Glitch/Anomaly (A core surreal, nonsensical element manifests)\n"
+        "   - Cut 4: The Peak Dream-Logic (Absolute detachment from natural physics/geography)\n"
+        "   - Cut 5: The Endless Horizon (An infinite loop or a beautiful, terrifying void)\n"
+        "2. Create a compelling, high-interest viral video title ('series_title') in English that evokes nostalgia, mystery, or curiosity.\n"
+        "3. ALL text fields ('series_title', 'title', 'description', 'video_prompt') MUST be entirely in ENGLISH.\n\n"
+        "--- 🌌 SCALE EXPANSION & DREAMCORE AESTHETICS (Beyond Indoors) ---\n"
+        "Break free from tight interior hallways. Expand the scale to massive, colossal macrostructures and wide outdoor/semi-outdoor liminal spaces:\n"
+        "- Environments: Infinite desert highways lined with glowing, blank retro billboards; colossal brutalist concrete monoliths towering under a perpetual pink twilight sky; a massive open-air swimming pool that flows over the edge of the world into endless clouds; abandoned giant amusement parks overgrown with neon moss; a railway track laid across an endless sea of identical office cubicles.\n"
+        "- Dream-Logic & Surreal Objects: A single playground swing floating in mid-air with no frame; an oversized CRT television sitting in the middle of a misty field displaying a static eye; clouds that look slightly geometric or low-poly.\n\n"
+        "--- 🎥 CINEMATOGRAPHY: ATMOSPHERIC STATIC & DRIFT ---\n"
+        "- A single cut DOES NOT require explicit action, rapid movement, or dramatic internal changes. \n"
+        "- Completely static, unmoving surveillance framing or slow, barely noticeable organic camera breathing is highly encouraged. Let the heavy, uncanny Dreamcore atmosphere freeze in time. The stillness itself is the horror and the beauty.\n"
+        "--- ANTI-CGI REALISM RULES ---\n"
+        "DO NOT use words like 'photorealistic' or '3D render'. Force raw reality using camera physics: amateur camcorder tape noise, vintage 35mm film grain (Kodak Portra), lens dust, minor glass smudges, slight chromatic aberration, and interlaced scanlines.\n\n"
         "--- OUTPUT FORMAT ---\n"
         "Output must be strictly valid JSON matching this schema:\n"
         "{\n"
-        "  \"series_title\": \"[Intriguing, high-interest viral video title]\",\n"
+        "  \"series_title\": \"[Intriguing, viral video title]\",\n"
         "  \"scenes\": [\n"
         "    {\n"
-        "      \"title\": \"Cut [X]: [Camera Technique & Specific Room Detail]\",\n"
-        "      \"description\": \"[Detailed English summary of the eerie spatial anomaly and camera motion]\",\n"
-        "      \"video_prompt\": \"[8-second English text-to-video prompt blending uncanny geometry with raw analog camera artifacts]\"\n"
+        "      \"title\": \"Cut [1-5]: [Narrative Phase & Visual Focus]\",\n"
+        "      \"description\": \"[Detailed English summary of the dream storyline, architectural scale, and eerie static atmosphere]\",\n"
+        "      \"video_prompt\": \"[8-second English text-to-video prompt blending massive surreal geometry with raw analog camera artifacts and static framing]\"\n"
         "    }\n"
         "  ]\n"
         "}"
@@ -98,7 +103,7 @@ def get_liminal_prompts():
                 res_json = response.json()
                 if 'choices' in res_json:
                     raw_content = res_json['choices'][0]['message']['content']
-                    print(f"✅ [성공] {model_id} 모델이 비현실적 컨셉과 훅 타이틀 생성을 마쳤습니다.")
+                    print(f"✅ [성공] {model_id} 모델이 대규모 드림코어 5단 서사 기획을 완료했습니다.")
                     return json.loads(raw_content)
             print(f"⚠️ [우회] {model_id} 에러 발생 (코드 {response.status_code}). 차선책으로 이동.")
         except Exception as e:
@@ -107,7 +112,7 @@ def get_liminal_prompts():
     return {}
 
 def generate_image(prompt, index):
-    """3. 429 우회 재시도 및 백업 모델 아키텍처가 탑재된 이미지 렌더링 함수"""
+    """3. 429 우회 재시도 및 백업 모델 아키펙처가 탑재된 이미지 렌더링 함수"""
     target_models = [
         "black-forest-labs/FLUX.1-schnell",
         "stabilityai/stable-diffusion-xl-base-1.0",
@@ -149,7 +154,7 @@ def generate_image(prompt, index):
 
 def send_to_telegram(series_title, title, desc, img_path):
     """4. 텔레그램으로 최종 흥미 유발 타이틀과 컷 가이드 전송"""
-    caption = f"🔥 *Video Title:* {series_title}\n\n🎬 *{title}*\n*Description:* {desc}"
+    caption = f"🔥 *Viral Video Title:* {series_title}\n\n🎬 *{title}*\n*Description:* {desc}"
     
     if img_path and os.path.exists(img_path):
         url = f"https://api.telegram.org/bot{TG_TOKEN}/sendPhoto"
@@ -157,7 +162,7 @@ def send_to_telegram(series_title, title, desc, img_path):
             res = requests.post(url, data={"chat_id": TG_CHAT_ID, "caption": caption, "parse_mode": "Markdown"}, files={"photo": photo})
     else:
         url = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
-        res = requests.post(url, data={"chat_id": TG_CHAT_ID, "text": f"{caption}\n⚠️ (Image Generaton Timeout/429)", "parse_mode": "Markdown"})
+        res = requests.post(url, data={"chat_id": TG_CHAT_ID, "text": f"{caption}\n⚠️ (Image Generation Timeout/429)", "parse_mode": "Markdown"})
     
     if res.status_code != 200:
         print(f"❌ 텔레그램 전송 실패 (코드 {res.status_code}): {res.text}")
