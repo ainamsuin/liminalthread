@@ -44,7 +44,7 @@ def get_active_free_models():
     return ["openrouter/free"]
 
 def get_liminal_prompts():
-    """2. 선형적 물리 동선(A to Z)이 엄격하게 통제된 5단 서사 프롬프트를 빌드합니다."""
+    """2. 단일 시각적 앵커와 극도의 몽환적 미학을 결합한 5단 시퀀스를 생성합니다."""
     free_models = get_active_free_models()
     
     url = "https://openrouter.ai/api/v1/chat/completions"
@@ -55,34 +55,31 @@ def get_liminal_prompts():
         "X-Title": "Dreamcore Agent"
     }
     
-    # 💡 직관적인 일인칭 공간 이동 경로를 완벽하게 강제하는 마스터 프롬프트
+    # 💡 몽환적 미학(Ethereal Dreamcore) 및 시각적 앵커(Visual Anchor) 강제 주입
     system_msg = (
-        "You are an expert cinematic Dreamcore filmmaker directing a single, tightly connected 5-cut narrative short film.\n\n"
-        "--- 🚨 CRITICAL RULE: STRICT LINEAR NARRATIVE PATH (A to Z) 🚨 ---\n"
-        "The 5 cuts MUST represent a continuous, intuitive sequential movement of a single observer walking deeper into the EXACT SAME giant surreal location. Each cut must physically lead into the next. Follow this exact blueprint:\n"
-        "- Cut 1 [The Approach / Outside]: The observer is outside or at the absolute edge of a colossal, surreal environment, looking at the massive structure from a distance.\n"
-        "- Cut 2 [The Entrance / Entering]: The observer passes through the main doorway/gate. The framing immediately expands to reveal an impossibly massive, echoing interior macro-space.\n"
-        "- Cut 3 [The Descent / Deep Inside]: The observer moves deeper into the belly of the structure, tracking along an abnormal path (e.g., endless stairs, conveyor belts, or an empty transit platform) that feels architecturally wrong.\n"
-        "- Cut 4 [The Confrontation / Core Dream Anomaly]: The observer reaches the deepest central chamber. Here, a single, deeply nostalgic yet logic-defying Dreamcore object sits frozen in total isolation (e.g., a massive floating playground swing, a lone CRT TV displaying an eye, a door with no wall).\n"
-        "- Cut 5 [The Dead End / Infinite Recurrence]: The camera angles upward or outward, revealing that this entire mega-structure is trapped in an infinite, inescapable loop or opens up into a beautiful, empty twilight void.\n\n"
-        "--- 🌌 SCALE & DREAMCORE SETTING POOL (Choose ONE theme for all 5 cuts) ---\n"
-        "- Theme A: A colossal concrete brutalist monolith standing in an infinite, empty pastel-pink desert.\n"
-        "- Theme B: An oversized, open-air public waterpark that floats infinitely above a sea of endless clouds.\n"
-        "- Theme C: A massive, abandoned retro transit station where the tracks run across an endless grid of empty office cubicles under a fake artificial sky.\n\n"
-        "--- 🎥 CINEMATOGRAPHY: PURE ATMOSPHERIC STILLNESS ---\n"
-        "- Avoid rapid movement or internal visual chaos. Focus heavily on eerie, static framing or a very slow, barely noticeable organic camera drift.\n"
-        "- Let the vast, quiet, uncanny layout speak for itself. The frozen, dream-like stillness is the key element.\n"
-        "--- ANTI-CGI REALISM RULES: ALWAYS INCLUDE IN PROMPTS ---\n"
-        "DO NOT use words like 'photorealistic' or '3D render'. Force raw reality using vintage camera physics: 35mm film grain (Kodak Portra), amateur camcorder tape noise, lens dust, edge chromatic aberration, muted retro color grading, and subtle low-light noise.\n\n"
+        "You are an expert cinematic Dreamcore director specializing in ethereal, nostalgic, and deeply surreal dreamscapes.\n\n"
+        "--- 🚨 CRITICAL CONTINUITY MANDATE: THE VISUAL ANCHOR 🚨 ---\n"
+        "To ensure an absolute, flawless connection between all 5 cuts, you must establish EXACTLY ONE 'Visual Anchor' that physically exists and is tracked across the entire video. Choose one from the pool below or invent a similar singular element for this generation:\n"
+        "- Anchor 1: A single, endless glowing neon pastel pink wire running continuously along the ground.\n"
+        "- Anchor 2: A perfect straight line of slowly floating, glowing white ceramic spheres suspended in mid-air.\n"
+        "- Anchor 3: A single set of copper railway tracks laid over impossible terrains.\n\n"
+        "Every single cut must follow or frame this EXACT same anchor. Cut N must begin exactly where the camera perspective of Cut N-1 left off, tracing the path of the anchor deeper into the dreamscape. This guarantees a seamless macro-narrative.\n\n"
+        "--- 🌌 ETHEREAL DREAMCORE AESTHETICS (Extreme Dream-logic) ---\n"
+        "Shift completely away from gritty, dark horror. The vibe must be beautiful, nostalgic, airy, and deeply melancholic—like a half-forgotten childhood memory melting away:\n"
+        "- Scale & Atmosphere: Vast, grand, infinite spaces flooded with thick, glowing volumetric fog and soft mist. Everything is drenched in a perpetual, surreal pastel twilight or hazy golden hour sky (lavender, soft peach, mint green, faded cream).\n"
+        "- Surreal Architecture: Giant marble archways rising out of an endless sea of calm, glass-like water; massive open-air malls with no walls where the floors are covered in soft, perfect green grass; colossal columns supporting clouds instead of a roof.\n"
+        "- Framing: The scenes should be profoundly static, calm, and frozen in time. No internal chaos. Let the camera breathe with an organic, nearly unnoticeable soft drift, capturing the absolute stillness of a dream.\n\n"
+        "--- ANTI-CGI REALISM RULES ---\n"
+        "Avoid terms like 'photorealistic' or '3D render'. Describe vintage analog film aesthetics to grounding the unreality: overexposed lens bloom, hazy soft-focus look, dream-like light leaks, fine 16mm organic film grain, soft halation around glowing edges, and desaturated, nostalgic retro color grading.\n\n"
         "--- OUTPUT FORMAT ---\n"
         "Output must be strictly valid JSON matching this schema (all text fields must be entirely in ENGLISH):\n"
         "{\n"
-        "  \"series_title\": \"[Intriguing, high-interest viral title reflecting the specific dream journey]\",\n"
+        "  \"series_title\": \"[A highly intriguing, poetic, viral-ready video title about this specific dream path]\",\n"
         "  \"scenes\": [\n"
         "    {\n"
-        "      \"title\": \"Cut [1-5]: [Blueprint Step Name] - [Visual Focus]\",\n"
-        "      \"description\": \"[Explicitly describe how this scene physically connects from the previous cut, detailing the massive scale and dream-logic geometry in English]\",\n"
-        "      \"video_prompt\": \"[8-second English text-to-video prompt capturing the raw analog camera details, static composition, and specific architectural anomaly]\"\n"
+        "      \"title\": \"Cut [1-5]: [Sequential Stage Name] - Tracking the [Chosen Anchor Name]\",\n"
+        "      \"description\": \"[Explain exactly how the camera moves from the previous shot's terminal point along the visual anchor, describing the immense scale and dreamy pastel atmosphere in English]\",\n"
+        "      \"video_prompt\": \"[8-second English text-to-video prompt capturing the static/slow drift framing, the continuous visual anchor, soft-focus lens bloom, and 16mm analog dream texture]\"\n"
         "    }\n"
         "  ]\n"
         "}"
@@ -101,7 +98,7 @@ def get_liminal_prompts():
                 res_json = response.json()
                 if 'choices' in res_json:
                     raw_content = res_json['choices'][0]['message']['content']
-                    print(f"✅ [성공] {model_id} 모델이 직관적 경로 기반 드림코어 5단 서사를 매끄럽게 빌드했습니다.")
+                    print(f"✅ [성공] {model_id} 모델이 시각적 앵커 기반의 몽환적 서사 구성을 마쳤습니다.")
                     return json.loads(raw_content)
             print(f"⚠️ [우회] {model_id} 에러 발생 (코드 {response.status_code}). 차선책으로 이동.")
         except Exception as e:
@@ -152,7 +149,7 @@ def generate_image(prompt, index):
 
 def send_to_telegram(series_title, title, desc, img_path):
     """4. 텔레그램으로 최종 흥미 유발 타이틀과 컷 가이드 전송"""
-    caption = f"🔥 *Viral Video Title:* {series_title}\n\n🎬 *{title}*\n*Description:* {desc}"
+    caption = f"✨ *Dreamcore Video:* {series_title}\n\n🎬 *{title}*\n*Description:* {desc}"
     
     if img_path and os.path.exists(img_path):
         url = f"https://api.telegram.org/bot{TG_TOKEN}/sendPhoto"
@@ -169,7 +166,7 @@ if __name__ == "__main__":
     try:
         res_data = get_liminal_prompts()
         scenes = res_data.get('scenes', [])
-        series_title = res_data.get('series_title', 'The Place Forgotten by Time')
+        series_title = res_data.get('series_title', 'A Memory That Never Happened')
         
         if not scenes:
             print("❌ 모든 무료 모델 리스트를 순회했으나 프롬프트 데이터 확보에 실패했습니다.")
