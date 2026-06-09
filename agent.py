@@ -44,7 +44,7 @@ def get_active_free_models():
     return ["openrouter/free"]
 
 def get_liminal_prompts():
-    """2. 거대한 스케일의 드림코어 서사를 가진 5단 구성 스토리보드를 빌드합니다."""
+    """2. 선형적 물리 동선(A to Z)이 엄격하게 통제된 5단 서사 프롬프트를 빌드합니다."""
     free_models = get_active_free_models()
     
     url = "https://openrouter.ai/api/v1/chat/completions"
@@ -55,36 +55,34 @@ def get_liminal_prompts():
         "X-Title": "Dreamcore Agent"
     }
     
-    # 💡 드림코어 서사, 스케일 확장, 정적 구도 허용 지시문 주입
+    # 💡 직관적인 일인칭 공간 이동 경로를 완벽하게 강제하는 마스터 프롬프트
     system_msg = (
-        "You are an expert cinematic Dreamcore and Weirdcore filmmaker. Your goal is to direct a beautifully haunting 5-cut narrative sequence that feels like a continuous journey through a surreal, impossible dreamscape.\n\n"
-        "--- 🚨 CRITICAL NARRATIVE & STORYLINE MANDATE 🚨 ---\n"
-        "1. The 5 cuts MUST form a single, linear narrative storyline or psychological progression. It should feel like a traveler walking deeper into a grand dream that gradually loses its connection to reality.\n"
-        "   - Cut 1: The Threshold (The entry point, familiar but unsettling)\n"
-        "   - Cut 2: The Expansion (The space opens up impossibly, revealing massive scale)\n"
-        "   - Cut 3: The Glitch/Anomaly (A core surreal, nonsensical element manifests)\n"
-        "   - Cut 4: The Peak Dream-Logic (Absolute detachment from natural physics/geography)\n"
-        "   - Cut 5: The Endless Horizon (An infinite loop or a beautiful, terrifying void)\n"
-        "2. Create a compelling, high-interest viral video title ('series_title') in English that evokes nostalgia, mystery, or curiosity.\n"
-        "3. ALL text fields ('series_title', 'title', 'description', 'video_prompt') MUST be entirely in ENGLISH.\n\n"
-        "--- 🌌 SCALE EXPANSION & DREAMCORE AESTHETICS (Beyond Indoors) ---\n"
-        "Break free from tight interior hallways. Expand the scale to massive, colossal macrostructures and wide outdoor/semi-outdoor liminal spaces:\n"
-        "- Environments: Infinite desert highways lined with glowing, blank retro billboards; colossal brutalist concrete monoliths towering under a perpetual pink twilight sky; a massive open-air swimming pool that flows over the edge of the world into endless clouds; abandoned giant amusement parks overgrown with neon moss; a railway track laid across an endless sea of identical office cubicles.\n"
-        "- Dream-Logic & Surreal Objects: A single playground swing floating in mid-air with no frame; an oversized CRT television sitting in the middle of a misty field displaying a static eye; clouds that look slightly geometric or low-poly.\n\n"
-        "--- 🎥 CINEMATOGRAPHY: ATMOSPHERIC STATIC & DRIFT ---\n"
-        "- A single cut DOES NOT require explicit action, rapid movement, or dramatic internal changes. \n"
-        "- Completely static, unmoving surveillance framing or slow, barely noticeable organic camera breathing is highly encouraged. Let the heavy, uncanny Dreamcore atmosphere freeze in time. The stillness itself is the horror and the beauty.\n"
-        "--- ANTI-CGI REALISM RULES ---\n"
-        "DO NOT use words like 'photorealistic' or '3D render'. Force raw reality using camera physics: amateur camcorder tape noise, vintage 35mm film grain (Kodak Portra), lens dust, minor glass smudges, slight chromatic aberration, and interlaced scanlines.\n\n"
+        "You are an expert cinematic Dreamcore filmmaker directing a single, tightly connected 5-cut narrative short film.\n\n"
+        "--- 🚨 CRITICAL RULE: STRICT LINEAR NARRATIVE PATH (A to Z) 🚨 ---\n"
+        "The 5 cuts MUST represent a continuous, intuitive sequential movement of a single observer walking deeper into the EXACT SAME giant surreal location. Each cut must physically lead into the next. Follow this exact blueprint:\n"
+        "- Cut 1 [The Approach / Outside]: The observer is outside or at the absolute edge of a colossal, surreal environment, looking at the massive structure from a distance.\n"
+        "- Cut 2 [The Entrance / Entering]: The observer passes through the main doorway/gate. The framing immediately expands to reveal an impossibly massive, echoing interior macro-space.\n"
+        "- Cut 3 [The Descent / Deep Inside]: The observer moves deeper into the belly of the structure, tracking along an abnormal path (e.g., endless stairs, conveyor belts, or an empty transit platform) that feels architecturally wrong.\n"
+        "- Cut 4 [The Confrontation / Core Dream Anomaly]: The observer reaches the deepest central chamber. Here, a single, deeply nostalgic yet logic-defying Dreamcore object sits frozen in total isolation (e.g., a massive floating playground swing, a lone CRT TV displaying an eye, a door with no wall).\n"
+        "- Cut 5 [The Dead End / Infinite Recurrence]: The camera angles upward or outward, revealing that this entire mega-structure is trapped in an infinite, inescapable loop or opens up into a beautiful, empty twilight void.\n\n"
+        "--- 🌌 SCALE & DREAMCORE SETTING POOL (Choose ONE theme for all 5 cuts) ---\n"
+        "- Theme A: A colossal concrete brutalist monolith standing in an infinite, empty pastel-pink desert.\n"
+        "- Theme B: An oversized, open-air public waterpark that floats infinitely above a sea of endless clouds.\n"
+        "- Theme C: A massive, abandoned retro transit station where the tracks run across an endless grid of empty office cubicles under a fake artificial sky.\n\n"
+        "--- 🎥 CINEMATOGRAPHY: PURE ATMOSPHERIC STILLNESS ---\n"
+        "- Avoid rapid movement or internal visual chaos. Focus heavily on eerie, static framing or a very slow, barely noticeable organic camera drift.\n"
+        "- Let the vast, quiet, uncanny layout speak for itself. The frozen, dream-like stillness is the key element.\n"
+        "--- ANTI-CGI REALISM RULES: ALWAYS INCLUDE IN PROMPTS ---\n"
+        "DO NOT use words like 'photorealistic' or '3D render'. Force raw reality using vintage camera physics: 35mm film grain (Kodak Portra), amateur camcorder tape noise, lens dust, edge chromatic aberration, muted retro color grading, and subtle low-light noise.\n\n"
         "--- OUTPUT FORMAT ---\n"
-        "Output must be strictly valid JSON matching this schema:\n"
+        "Output must be strictly valid JSON matching this schema (all text fields must be entirely in ENGLISH):\n"
         "{\n"
-        "  \"series_title\": \"[Intriguing, viral video title]\",\n"
+        "  \"series_title\": \"[Intriguing, high-interest viral title reflecting the specific dream journey]\",\n"
         "  \"scenes\": [\n"
         "    {\n"
-        "      \"title\": \"Cut [1-5]: [Narrative Phase & Visual Focus]\",\n"
-        "      \"description\": \"[Detailed English summary of the dream storyline, architectural scale, and eerie static atmosphere]\",\n"
-        "      \"video_prompt\": \"[8-second English text-to-video prompt blending massive surreal geometry with raw analog camera artifacts and static framing]\"\n"
+        "      \"title\": \"Cut [1-5]: [Blueprint Step Name] - [Visual Focus]\",\n"
+        "      \"description\": \"[Explicitly describe how this scene physically connects from the previous cut, detailing the massive scale and dream-logic geometry in English]\",\n"
+        "      \"video_prompt\": \"[8-second English text-to-video prompt capturing the raw analog camera details, static composition, and specific architectural anomaly]\"\n"
         "    }\n"
         "  ]\n"
         "}"
@@ -103,7 +101,7 @@ def get_liminal_prompts():
                 res_json = response.json()
                 if 'choices' in res_json:
                     raw_content = res_json['choices'][0]['message']['content']
-                    print(f"✅ [성공] {model_id} 모델이 대규모 드림코어 5단 서사 기획을 완료했습니다.")
+                    print(f"✅ [성공] {model_id} 모델이 직관적 경로 기반 드림코어 5단 서사를 매끄럽게 빌드했습니다.")
                     return json.loads(raw_content)
             print(f"⚠️ [우회] {model_id} 에러 발생 (코드 {response.status_code}). 차선책으로 이동.")
         except Exception as e:
@@ -112,7 +110,7 @@ def get_liminal_prompts():
     return {}
 
 def generate_image(prompt, index):
-    """3. 429 우회 재시도 및 백업 모델 아키펙처가 탑재된 이미지 렌더링 함수"""
+    """3. 429 우회 재시도 및 백업 모델 아키텍처가 탑재된 이미지 렌더링 함수"""
     target_models = [
         "black-forest-labs/FLUX.1-schnell",
         "stabilityai/stable-diffusion-xl-base-1.0",
