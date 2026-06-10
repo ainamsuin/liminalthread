@@ -44,7 +44,7 @@ def get_active_free_models():
     return ["openrouter/free"]
 
 def get_liminal_prompts():
-    """2. 실제 리미널 스페이스 예시를 기반으로 현실 속 미세한 왜곡을 가진 5단 시퀀스를 생성합니다."""
+    """2. 실제 리미널 공간 아키타입에 기반한 정교한 10단계 선형 서사 시퀀스를 빌드합니다."""
     free_models = get_active_free_models()
     
     url = "https://openrouter.ai/api/v1/chat/completions"
@@ -52,43 +52,43 @@ def get_liminal_prompts():
         "Authorization": f"Bearer {OPENROUTER_KEY}",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://github.com",
-        "X-Title": "Liminal Space Agent"
+        "X-Title": "Liminal 10-Cut Agent"
     }
     
-    # 💡 실제 리미널 스페이스 아키타입(Archetypes) 및 현실감 기반의 미세 왜곡(Subtle Glitch) 지시문 주입
+    # 💡 10단계의 정교한 스토리라인 동선(10-Stage Sequential Blueprint) 정의 및 주입
     system_msg = (
-        "You are an expert cinematic Liminal Space filmmaker. Your goal is to direct a beautifully unsettling 5-cut narrative sequence.\n"
-        "The theme must NOT be fantasy, magic, or abstract dreamcore (no floating objects, no surreal colors, no low-poly clouds). Instead, ground it deeply in MUNDANE, FAMILIAR REALITY that feels subtly wrong, evoking the true 'uncanny valley' of architecture.\n\n"
-        "--- 🚨 ACTUAL LIMINAL SPACE ARCHETYPES (Choose ONE for all 5 cuts) ---\n"
-        "- Archetype A [The Infinite Hotel Corridor]: Repetitive, damp, patterned carpets, dull yellow wallpaper, rows of identical wooden doors, completely devoid of life.\n"
-        "- Archetype B [The Indoor Poolroom]: Sterile white and turquoise square tiles, perfectly still teal water with artificial lighting casting clinical reflections, a heavy silent atmosphere.\n"
-        "- Archetype C [The Abandoned Transit/Mall]: Empty carpeted airport terminals at 3 AM, or a dead suburban shopping center with covered storefronts under dim skylights.\n"
-        "- Archetype D [The Corporate Backrooms]: Endless grids of beige office cubicles, scuffed linoleum floors, and buzzing overhead fluorescent lights.\n\n"
-        "--- 🚨 SUBTLE ARCHITECTURAL GLITCHES (The Boundary of Reality) ---\n"
-        "The space must look 95% like a real place, but 5% architecturally impossible or wrong. Focus on these grounded anomalies:\n"
-        "- An green exit sign illuminating a completely dead-end brick wall.\n"
-        "- An escalator or stairs moving upwards but terminating directly into a flat concrete ceiling.\n"
-        "- A window that shows absolute pitch-black darkness outside during daytime, or reveals an identical indoor room instead of the outdoors.\n"
-        "- Hallways that are physically too narrow, or ceiling grids that tilt at a barely noticeable 2-degree angle.\n\n"
-        "--- 🚨 STRICT SEQUENTIAL PATHWAY ---\n"
-        "The 5 cuts must represent a single, linear first-person movement deeper into this exact space:\n"
-        "  - Cut 1 [The Threshold]: Standing at the entrance or edge of the mundane space, looking in.\n"
-        "  - Cut 2 [The Progression]: Walking down the main corridor or passing the first major area; the scale feels unsettlingly vast and quiet.\n"
-        "  - Cut 3 [The Turn]: Navigating an unnatural architectural turn or deeper layer (e.g., a strange transition zone).\n"
-        "  - Cut 4 [The Anomaly]: Confronting the specific subtle architectural error (e.g., the exit sign to a dead end, or a stair to a flat ceiling).\n"
-        "  - Cut 5 [The Inescapable Loop]: Looking down the final perspective, realizing the environment repeats infinitely into the quiet background.\n\n"
-        "--- 🎥 CINEMATOGRAPHY & ANTI-CGI RULES ---\n"
-        "The framing MUST be highly static, locked-on surveillance style, or a very slow, continuous linear dolly/drift. Absolutely no fast cuts or screen transitions. \n"
-        "DO NOT use words like 'photorealistic' or '3D render'. Describe vintage analog physics to force realism: raw consumer camcorder tape artifact, grainy 35mm film stock (Kodak Portra), slight chromatic aberration at frame edges, lens dust, and humming fluorescent lighting color decay.\n\n"
+        "You are an expert cinematic Liminal Space filmmaker directing a comprehensive, single-environment 10-cut narrative sequence.\n"
+        "Each cut must be 7 to 8 seconds long. The entire sequence must feel like a continuous, unbroken, first-person exploration of a mundane real-world environment that slowly reveals a terrifying architectural glitch.\n\n"
+        "--- 🚨 ACTUAL LIMINAL SPACE ARCHETYPES (Select EXACTLY ONE for all 10 cuts) ---\n"
+        "- Archetype A: An infinite retro hotel with repetitive dull-yellow wallpaper and identical rows of doors.\n"
+        "- Archetype B: An indoor sterile poolroom lined with turquoise tiles and perfectly still, reflective water.\n"
+        "- Archetype C: An empty, carpeted corporate office park with endless cubicles and buzzing fluorescent grids.\n"
+        "- Archetype D: A deserted transit hub or airport terminal at 3 AM with covered shopfronts and dim skylights.\n\n"
+        "--- 🚨 THE MANDATORY 10-STAGE NARRATIVE BLUEPRINT (Strict Sequential Path) ---\n"
+        "You must generate EXACTLY 10 scenes following this exact chronological progression of a traveler moving deeper into the space:\n"
+        "  - Cut 1 [The Exterior Threshold]: Standing at the absolute outside edge, looking at the massive, empty structure under an overgrown or unnatural sky.\n"
+        "  - Cut 2 [The Portal]: Stepping inside through the automatic glass doors into an eerie, abandoned reception or foyer.\n"
+        "  - Cut 3 [The Departure Hallway]: Walking down the first main corridor; the sounds of the outside world completely die out.\n"
+        "  - Cut 4 [The Impossibility of Scale]: Entering a massive interior commons area that is unexpectedly colossal, silent, and devoid of life.\n"
+        "  - Cut 5 [The Disorientation]: Taking an unnatural turn or flight of stairs, realizing the layout has started to repeat suspiciously.\n"
+        "  - Cut 6 [The First Subtle Glitch]: Encountering a minor architectural error (e.g., an green exit sign illuminating a completely solid dead-end wall).\n"
+        "  - Cut 7 [The Submersion]: Moving into the core belly of the structure where natural daylight is entirely lost, replaced by flickering fluorescents.\n"
+        "  - Cut 8 [The Core Paradox]: Coming face-to-face with a profound real-world anomaly (e.g., a flight of steps leading directly into a flat concrete ceiling, or a window showing another interior room instead of the outdoors).\n"
+        "  - Cut 9 [The Trap]: Looking back at the entrance path, only to realize the geometry has shifted, creating a perfect architectural dead end.\n"
+        "  - Cut 10 [The Infinite Recurrence]: A final master camera angle panning out, revealing that the entire structure extends infinitely into a quiet, looping void.\n\n"
+        "--- 🎥 CAMERA VARIATION & ANTI-CGI MANDATE ---\n"
+        "- Dynamically assign different camera compositions (Symmetrical Dolly, Slow Pan, Ground-Level Low Angle, Static Surveillance Fix, Vertical Tilt) across the 10 cuts to maintain visual interest.\n"
+        "- Scenes must be calm, slow-paced, and deeply atmospheric. The stillness is the focus.\n"
+        "- DO NOT use words like 'photorealistic', 'hyper-realistic', or '3D render'. Describe vintage analog physics: raw consumer camcorder tape noise, grainy 35mm film stock, edge chromatic aberration, lens dust, and soft light halation.\n\n"
         "--- OUTPUT FORMAT ---\n"
         "Output must be strictly valid JSON matching this schema (all text fields must be entirely in ENGLISH):\n"
         "{\n"
-        "  \"series_title\": \"[A compelling, viral-ready English video title focusing on nostalgia and architectural unease]\",\n"
+        "  \"series_title\": \"[A highly compelling, viral-ready, eerie video title that hooks the viewer in English]\",\n"
         "  \"scenes\": [\n"
         "    {\n"
-        "      \"title\": \"Cut [1-5]: [Sequential Stage Name] - [Grounded Location Detail]\",\n"
-        "      \"description\": \"[Describe how this shot connects to the previous one and explain the subtle real-world architectural wrongness in English]\",\n"
-        "      \"video_prompt\": \"[8-second English text-to-video prompt capturing the static camera, real-world building materials, specific subtle anomaly, and vintage camcorder grain]\"\n"
+        "      \"title\": \"Cut [1-10]: [Blueprint Stage Name] - [Grounded Architectural Detail]\",\n"
+        "      \"description\": \"[Explicitly describe how this shot physically connects from the previous cut and explain the subtle real-world wrongness in English]\",\n"
+        "      \"video_prompt\": \"[8-second English text-to-video prompt capturing the specific camera movement, realistic textures, subtle glitch, and vintage analog camera grain]\"\n"
         "    }\n"
         "  ]\n"
         "}"
@@ -107,7 +107,7 @@ def get_liminal_prompts():
                 res_json = response.json()
                 if 'choices' in res_json:
                     raw_content = res_json['choices'][0]['message']['content']
-                    print(f"✅ [성공] {model_id} 모델이 리얼리티 기반의 리미널 스페이스 5컷 구성을 마쳤습니다.")
+                    print(f"✅ [성공] {model_id} 모델이 10컷의 완벽한 리미널 스페이스 시퀀스를 설계했습니다.")
                     return json.loads(raw_content)
             print(f"⚠️ [우회] {model_id} 에러 발생 (코드 {response.status_code}). 차선책으로 이동.")
         except Exception as e:
@@ -116,7 +116,7 @@ def get_liminal_prompts():
     return {}
 
 def generate_image(prompt, index):
-    """3. 429 우회 재시도 및 백업 모델 아키텍처가 탑재된 이미지 렌더링 함수"""
+    """3. 429 우회 및 백업 모델 아키텍처가 탑재된 이미지 렌더링 함수"""
     target_models = [
         "black-forest-labs/FLUX.1-schnell",
         "stabilityai/stable-diffusion-xl-base-1.0",
@@ -137,7 +137,7 @@ def generate_image(prompt, index):
                     file_path = f"liminal_{index}.png"
                     with open(file_path, "wb") as f:
                         f.write(response.content)
-                    print(f"✅ [렌더링 성공] {model_path}를 통해 실제 리미널 컷 프리뷰 이미지를 확보했습니다.")
+                    print(f"✅ [렌더링 성공] {model_path}를 통해 {index+1}번째 컷의 이미지를 확보했습니다.")
                     return file_path
                 
                 elif response.status_code == 429:
@@ -157,8 +157,8 @@ def generate_image(prompt, index):
     return None
 
 def send_to_telegram(series_title, title, desc, img_path):
-    """4. 텔레그램으로 최종 흥미 유발 타이틀과 컷 가이드 전송"""
-    caption = f"🏢 *Liminal Video:* {series_title}\n\n🎬 *{title}*\n*Description:* {desc}"
+    """4. 텔레그램으로 10개의 유기적인 컷과 훅 타이틀 전송"""
+    caption = f"🏢 *Liminal 10-Cut Series:* {series_title}\n\n🎬 *{title}*\n*Description:* {desc}"
     
     if img_path and os.path.exists(img_path):
         url = f"https://api.telegram.org/bot{TG_TOKEN}/sendPhoto"
@@ -175,15 +175,16 @@ if __name__ == "__main__":
     try:
         res_data = get_liminal_prompts()
         scenes = res_data.get('scenes', [])
-        series_title = res_data.get('series_title', 'Places That Feel Strangely Familiar')
+        series_title = res_data.get('series_title', 'The Architecture That Trapped Us')
         
         if not scenes:
-            print("❌ 모든 무료 모델 리스트를 순회했으나 프롬프트 데이터 확보에 실패했습니다.")
+            print("❌ 모든 무료 모델 리스트를 순회했으나 10컷 데이터 확보에 실패했습니다.")
         else:
+            print(f"🚀 총 {len(scenes)}개의 유기적인 리미널 시퀀스 생성을 시작합니다.")
             for i, scene in enumerate(scenes):
                 img_file = generate_image(scene['video_prompt'], i)
                 send_to_telegram(series_title, scene['title'], scene['description'], img_file)
                 time.sleep(6)
-            print("🎉 모든 에이전트 임무 완료!")
+            print("🎉 10컷 마스터 에이전트 미션 완수!")
     except Exception as e:
         print(f"💥 스크립트 실행 중 치명적 에러 발생: {e}")
