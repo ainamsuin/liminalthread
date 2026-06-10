@@ -44,7 +44,7 @@ def get_active_free_models():
     return ["openrouter/free"]
 
 def get_liminal_prompts():
-    """2. 단일 시각적 앵커와 극도의 몽환적 미학을 결합한 5단 시퀀스를 생성합니다."""
+    """2. 실제 리미널 스페이스 예시를 기반으로 현실 속 미세한 왜곡을 가진 5단 시퀀스를 생성합니다."""
     free_models = get_active_free_models()
     
     url = "https://openrouter.ai/api/v1/chat/completions"
@@ -52,34 +52,43 @@ def get_liminal_prompts():
         "Authorization": f"Bearer {OPENROUTER_KEY}",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://github.com",
-        "X-Title": "Dreamcore Agent"
+        "X-Title": "Liminal Space Agent"
     }
     
-    # 💡 몽환적 미학(Ethereal Dreamcore) 및 시각적 앵커(Visual Anchor) 강제 주입
+    # 💡 실제 리미널 스페이스 아키타입(Archetypes) 및 현실감 기반의 미세 왜곡(Subtle Glitch) 지시문 주입
     system_msg = (
-        "You are an expert cinematic Dreamcore director specializing in ethereal, nostalgic, and deeply surreal dreamscapes.\n\n"
-        "--- 🚨 CRITICAL CONTINUITY MANDATE: THE VISUAL ANCHOR 🚨 ---\n"
-        "To ensure an absolute, flawless connection between all 5 cuts, you must establish EXACTLY ONE 'Visual Anchor' that physically exists and is tracked across the entire video. Choose one from the pool below or invent a similar singular element for this generation:\n"
-        "- Anchor 1: A single, endless glowing neon pastel pink wire running continuously along the ground.\n"
-        "- Anchor 2: A perfect straight line of slowly floating, glowing white ceramic spheres suspended in mid-air.\n"
-        "- Anchor 3: A single set of copper railway tracks laid over impossible terrains.\n\n"
-        "Every single cut must follow or frame this EXACT same anchor. Cut N must begin exactly where the camera perspective of Cut N-1 left off, tracing the path of the anchor deeper into the dreamscape. This guarantees a seamless macro-narrative.\n\n"
-        "--- 🌌 ETHEREAL DREAMCORE AESTHETICS (Extreme Dream-logic) ---\n"
-        "Shift completely away from gritty, dark horror. The vibe must be beautiful, nostalgic, airy, and deeply melancholic—like a half-forgotten childhood memory melting away:\n"
-        "- Scale & Atmosphere: Vast, grand, infinite spaces flooded with thick, glowing volumetric fog and soft mist. Everything is drenched in a perpetual, surreal pastel twilight or hazy golden hour sky (lavender, soft peach, mint green, faded cream).\n"
-        "- Surreal Architecture: Giant marble archways rising out of an endless sea of calm, glass-like water; massive open-air malls with no walls where the floors are covered in soft, perfect green grass; colossal columns supporting clouds instead of a roof.\n"
-        "- Framing: The scenes should be profoundly static, calm, and frozen in time. No internal chaos. Let the camera breathe with an organic, nearly unnoticeable soft drift, capturing the absolute stillness of a dream.\n\n"
-        "--- ANTI-CGI REALISM RULES ---\n"
-        "Avoid terms like 'photorealistic' or '3D render'. Describe vintage analog film aesthetics to grounding the unreality: overexposed lens bloom, hazy soft-focus look, dream-like light leaks, fine 16mm organic film grain, soft halation around glowing edges, and desaturated, nostalgic retro color grading.\n\n"
+        "You are an expert cinematic Liminal Space filmmaker. Your goal is to direct a beautifully unsettling 5-cut narrative sequence.\n"
+        "The theme must NOT be fantasy, magic, or abstract dreamcore (no floating objects, no surreal colors, no low-poly clouds). Instead, ground it deeply in MUNDANE, FAMILIAR REALITY that feels subtly wrong, evoking the true 'uncanny valley' of architecture.\n\n"
+        "--- 🚨 ACTUAL LIMINAL SPACE ARCHETYPES (Choose ONE for all 5 cuts) ---\n"
+        "- Archetype A [The Infinite Hotel Corridor]: Repetitive, damp, patterned carpets, dull yellow wallpaper, rows of identical wooden doors, completely devoid of life.\n"
+        "- Archetype B [The Indoor Poolroom]: Sterile white and turquoise square tiles, perfectly still teal water with artificial lighting casting clinical reflections, a heavy silent atmosphere.\n"
+        "- Archetype C [The Abandoned Transit/Mall]: Empty carpeted airport terminals at 3 AM, or a dead suburban shopping center with covered storefronts under dim skylights.\n"
+        "- Archetype D [The Corporate Backrooms]: Endless grids of beige office cubicles, scuffed linoleum floors, and buzzing overhead fluorescent lights.\n\n"
+        "--- 🚨 SUBTLE ARCHITECTURAL GLITCHES (The Boundary of Reality) ---\n"
+        "The space must look 95% like a real place, but 5% architecturally impossible or wrong. Focus on these grounded anomalies:\n"
+        "- An green exit sign illuminating a completely dead-end brick wall.\n"
+        "- An escalator or stairs moving upwards but terminating directly into a flat concrete ceiling.\n"
+        "- A window that shows absolute pitch-black darkness outside during daytime, or reveals an identical indoor room instead of the outdoors.\n"
+        "- Hallways that are physically too narrow, or ceiling grids that tilt at a barely noticeable 2-degree angle.\n\n"
+        "--- 🚨 STRICT SEQUENTIAL PATHWAY ---\n"
+        "The 5 cuts must represent a single, linear first-person movement deeper into this exact space:\n"
+        "  - Cut 1 [The Threshold]: Standing at the entrance or edge of the mundane space, looking in.\n"
+        "  - Cut 2 [The Progression]: Walking down the main corridor or passing the first major area; the scale feels unsettlingly vast and quiet.\n"
+        "  - Cut 3 [The Turn]: Navigating an unnatural architectural turn or deeper layer (e.g., a strange transition zone).\n"
+        "  - Cut 4 [The Anomaly]: Confronting the specific subtle architectural error (e.g., the exit sign to a dead end, or a stair to a flat ceiling).\n"
+        "  - Cut 5 [The Inescapable Loop]: Looking down the final perspective, realizing the environment repeats infinitely into the quiet background.\n\n"
+        "--- 🎥 CINEMATOGRAPHY & ANTI-CGI RULES ---\n"
+        "The framing MUST be highly static, locked-on surveillance style, or a very slow, continuous linear dolly/drift. Absolutely no fast cuts or screen transitions. \n"
+        "DO NOT use words like 'photorealistic' or '3D render'. Describe vintage analog physics to force realism: raw consumer camcorder tape artifact, grainy 35mm film stock (Kodak Portra), slight chromatic aberration at frame edges, lens dust, and humming fluorescent lighting color decay.\n\n"
         "--- OUTPUT FORMAT ---\n"
         "Output must be strictly valid JSON matching this schema (all text fields must be entirely in ENGLISH):\n"
         "{\n"
-        "  \"series_title\": \"[A highly intriguing, poetic, viral-ready video title about this specific dream path]\",\n"
+        "  \"series_title\": \"[A compelling, viral-ready English video title focusing on nostalgia and architectural unease]\",\n"
         "  \"scenes\": [\n"
         "    {\n"
-        "      \"title\": \"Cut [1-5]: [Sequential Stage Name] - Tracking the [Chosen Anchor Name]\",\n"
-        "      \"description\": \"[Explain exactly how the camera moves from the previous shot's terminal point along the visual anchor, describing the immense scale and dreamy pastel atmosphere in English]\",\n"
-        "      \"video_prompt\": \"[8-second English text-to-video prompt capturing the static/slow drift framing, the continuous visual anchor, soft-focus lens bloom, and 16mm analog dream texture]\"\n"
+        "      \"title\": \"Cut [1-5]: [Sequential Stage Name] - [Grounded Location Detail]\",\n"
+        "      \"description\": \"[Describe how this shot connects to the previous one and explain the subtle real-world architectural wrongness in English]\",\n"
+        "      \"video_prompt\": \"[8-second English text-to-video prompt capturing the static camera, real-world building materials, specific subtle anomaly, and vintage camcorder grain]\"\n"
         "    }\n"
         "  ]\n"
         "}"
@@ -98,7 +107,7 @@ def get_liminal_prompts():
                 res_json = response.json()
                 if 'choices' in res_json:
                     raw_content = res_json['choices'][0]['message']['content']
-                    print(f"✅ [성공] {model_id} 모델이 시각적 앵커 기반의 몽환적 서사 구성을 마쳤습니다.")
+                    print(f"✅ [성공] {model_id} 모델이 리얼리티 기반의 리미널 스페이스 5컷 구성을 마쳤습니다.")
                     return json.loads(raw_content)
             print(f"⚠️ [우회] {model_id} 에러 발생 (코드 {response.status_code}). 차선책으로 이동.")
         except Exception as e:
@@ -128,7 +137,7 @@ def generate_image(prompt, index):
                     file_path = f"liminal_{index}.png"
                     with open(file_path, "wb") as f:
                         f.write(response.content)
-                    print(f"✅ [렌더링 성공] {model_path}를 통해 이미지를 확보했습니다.")
+                    print(f"✅ [렌더링 성공] {model_path}를 통해 실제 리미널 컷 프리뷰 이미지를 확보했습니다.")
                     return file_path
                 
                 elif response.status_code == 429:
@@ -149,7 +158,7 @@ def generate_image(prompt, index):
 
 def send_to_telegram(series_title, title, desc, img_path):
     """4. 텔레그램으로 최종 흥미 유발 타이틀과 컷 가이드 전송"""
-    caption = f"✨ *Dreamcore Video:* {series_title}\n\n🎬 *{title}*\n*Description:* {desc}"
+    caption = f"🏢 *Liminal Video:* {series_title}\n\n🎬 *{title}*\n*Description:* {desc}"
     
     if img_path and os.path.exists(img_path):
         url = f"https://api.telegram.org/bot{TG_TOKEN}/sendPhoto"
@@ -166,7 +175,7 @@ if __name__ == "__main__":
     try:
         res_data = get_liminal_prompts()
         scenes = res_data.get('scenes', [])
-        series_title = res_data.get('series_title', 'A Memory That Never Happened')
+        series_title = res_data.get('series_title', 'Places That Feel Strangely Familiar')
         
         if not scenes:
             print("❌ 모든 무료 모델 리스트를 순회했으나 프롬프트 데이터 확보에 실패했습니다.")
