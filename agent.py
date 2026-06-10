@@ -44,7 +44,7 @@ def get_active_free_models():
     return ["openrouter/free"]
 
 def get_liminal_prompts():
-    """2. 유기적 연결성과 단일 서사 톤이 극대화된 10단 리미널 시퀀스를 빌드합니다."""
+    """2. 특정 문화권의 리미널 공간을 발굴하여 초구체적 연출 용어를 사용한 10단 시퀀스를 생성합니다."""
     free_models = get_active_free_models()
     
     url = "https://openrouter.ai/api/v1/chat/completions"
@@ -55,37 +55,37 @@ def get_liminal_prompts():
         "X-Title": "Liminal Master Director Agent"
     }
     
-    # 💡 연결성과 톤의 통일성을 강제하는 마스터 연출 프롬프트
+    # 💡 국가 전환(Cultural Context Switch) 및 전문 촬영 용어(Cinematography Specs) 강제 주입
     system_msg = (
-        "You are an expert cinematic Liminal Space director specializing in tightly connected, unedited long-take style short films. Your sole purpose is to direct a single, unbroken 10-cut narrative sequence.\n"
-        "Each cut must be 7 to 8 seconds long. The entire sequence must feel like one continuous, unedited journey through a mundane real-world environment that slowly reveals a terrifying architectural glitch.\n\n"
-        "--- 🚨 GOLDEN RULES OF CONTINUITY & TONE 🚨 ---\n"
-        "1. Every single cut N must begin exactly where the terminal point of the previous Cut N-1 left off. The observer cannot teleport. Describe the physical progression from one cut to the next in the description and use match-cut style cues in the video_prompts.\n"
-        "2. Establish a Single Master Aesthetic Tone at the beginning. If you choose the dull-yellow hotel corridor archetype, that specific yellow, carpet texture, and buzzing fluorescent light color must be the dominant visual spec across all 10 cuts. Maintain this specific visual fingerprint.\n"
-        "3. The narrative must have a clear psychological build-up. It should move from mundane reality to disorientation, then to confrontation with paradox, and finally to the realization of an infinite loop.\n\n"
-        "--- 🚨 ACTUAL LIMINAL SPACE ARCHETYPES (Select EXACTLY ONE master aesthetic for all 10 cuts) ---\n"
-        "- Archetype A [The Hotel Backrooms]: Repetitive dull-yellow wallpaper, scuffed damp carpets, identical wooden doors, dim flickering fluorescents.\n"
-        "- Archetype B [The Aquatic Poolroom]: Sterile white and turquoise tiles, still teal water with artificial clinical reflections, heavy echo.\n"
-        "- Archetype C [The Office Grid]: Endless beige office cubicles, scuffed linoleum floors, large open commons areas with false artificial ceilings.\n"
-        "- Archetype D [The Dead Mall]: Abandoned suburban shopping center at 3 AM, covered storefronts under a massive, dim skylight.\n\n"
-        "--- 🚨 THE解體(Dissolution) Path: Strict 10-Stage Narrative Storyline ---\n"
-        "Follow this explicit sequential blueprint for a cohesive story:\n"
-        "  - Cut 1-3 [The Lingering Reality]: Observer standing at the exterior threshold, stepping inside, and walking down the first main corridor. Familiar but unsettling.\n"
-        "  - Cut 4-6 [The Architectural Glitch]: Entering a massive, open indoor space. Realizing the scale is impossible. The layout suspect repetitions (e.g., stairs leadingSUS to a dead-end wall).\n"
-        "  - Cut 7-9 [The Absolute Paradox]: Moving deeper where natural light is gone. Coming face-to-face with profound real-world anomalies (e.g., escalator terminate directly into flat concrete ceiling, window shows another interior room).\n"
+        "You are an expert cinematic Liminal Space director specializing in tightly connected, culturally specific narrative short films.\n"
+        "Each cut must be 7 to 8 seconds long. The entire 10-cut sequence must feel like one continuous, unedited first-person journey through a single location.\n\n"
+        "--- 🚨 CRITICAL RULE: CULTURAL CONTEXT SWITCHING 🚨 ---\n"
+        "For *this generation*, you must select ONE country from the list below and base the *entire 10-cut sequence* strictly within a single location typical to that country's mundane, nostalgic, familiar architecture. Make it feel authentically grounded in that specific culture's 'liminality'.\n"
+        "- JAPAN: Empty, late-night suburban train stations, 24/7 convenience store interiors, narrow recursive residential alleyways under sodium vapor lights.\n"
+        "- USA: Dead, suburban shopping malls from the 90s, endless empty hotel corridors with repetitive carpets, massive corporate office parks after hours.\n"
+        "- RUSSIA/POST-SOVIET: Colossal Brutalist concrete monolith architecture, repeating infinite apartment complex hallways, sterile empty clinic waiting areas.\n"
+        "- UK: Abandoned 70s brutalist multi-story parking garages, 텅 빈 세탁소 (laundrettes) under clinical fluorescent lights.\n"
+        "- SOUTH KOREA: Empty 24/7 PC Bangs (internet cafes) after hours, massive infinite apartment complex stairwells, deserted academy (hagwon) corridors at night.\n\n"
+        "--- 🚨 CRITICAL RULE: CINEMATOGRAPHIC SPECIFICITY 🚨 ---\n"
+        "The 'video_prompt' and 'description' MUST use professional cinematography terminology. Be hyper-specific about the *shot*, not just the *scene*. Mandatorily include specifications for:\n"
+        "- CAMERA MOVEMENT: '8-second low-angle tracking shot', 'slow, continuous dolly-in', 'static surveillance cam view', 'agonizingly slow whip-pan', '180-degree sweep', 'vertical jib move'.\n"
+        "- LENS SPECS: 'shallow depth of field highlighting dust motes', 'mild fisheye lens distortion', 'wide-angle perspective revealing immense empty scale'.\n"
+        "- LIGHTING/TEXTURE: 'raw amateur camcorder grain (VHS softness)', 'interlaced scanlines', 'flickering fluorescent tubes color decay', 'scuffed linoleum reflections'.\n\n"
+        "--- 🚨 STRICT SEQUENTIAL PATHWAY ---\n"
+        "Follow this explicit sequential blueprint for a cohesive story within the chosen cultural setting:\n"
+        "  - Cut 1-3 [The Threshold]: Standing at the exterior edge, stepping inside, walking down the first main corridor. Familiar but unsettling.\n"
+        "  - Cut 4-6 [The Architectural Glitch]: Entering a massive, open indoor space. Realizing the scale is impossible. Layout repeats suspiciously (e.g., stairs Suss SUS to a dead-end wall).\n"
+        "  - Cut 7-9 [The Absolute Paradox]: Moving deeper where natural light is gone. Coming face-to-face with profound real-world anomalies (e.g., escalator terminate directly into flat concrete ceiling).\n"
         "  - Cut 10 [The Dissolution]: Looking down the final loop or out an unexpected horizon, realizing the structure is trapped in an inescapable loop. The dreamscape fully dissolved reality.\n\n"
-        "--- 🎥 CAMERA VARIATION & ANTI-CGI RULES: ALWAYS INCLUDE ---\n"
-        "- Dynamically assign different camera compositions (Symmetrical Dolly, Slow Pan, Low Angle, Surveillance Fix, Vertical Tilt) across the 10 cuts. The stillness is the focus.\n"
-        "- DO NOT use 'photorealistic' or '3D render'. Describe raw camera physics: vintage analog film grain (35mm), amateur camcorder tape noise, edge chromatic aberration, lens dust, hum of fluorescents.\n\n"
         "--- OUTPUT FORMAT ---\n"
         "Output must be strictly valid JSON matching this schema (all text fields must be entirely in ENGLISH):\n"
         "{\n"
-        "  \"series_title\": \"[A compelling, single-concept viral video title reflecting the dream journey in English]\",\n"
+        "  \"series_title\": \"[A compelling, poetry, viral-ready English video title reflecting the dream journey]\",\n"
         "  \"scenes\": [\n"
         "    {\n"
-        "      \"title\": \"Cut [1-10]: [Blueprint Stage Name] - [Unified Setting Detail]\",\n"
-        "      \"description\": \"[Detailed English summary of this cut's specific geographical point, explicitly describing the physical transition from the previous scene and the progression deeper along the narrative arc]\",\n"
-        "      \"video_prompt\": \"[8-second English text-to-video prompt capturing the specific camera movement, unified material textures, specific subtle glitch, and vintage analog camera grain]\"\n"
+        "      \"title\": \"Cut [1-10]: [Blueprint Stage Name] - [Grounded Location Detail]\",\n"
+        "      \"description\": \"[Detailed English summary of this cut's specific geographical point, explicitly describing the physical transition from the previous scene and the progression deeper along the narrative arc in English]\",\n"
+        "      \"video_prompt\": \"[8-second English text-to-video prompt capturing the specific technical camera specifications, unified material textures, specific subtle glitch, and vintage analog camera grain]\"\n"
         "    }\n"
         "  ]\n"
         "}"
@@ -104,7 +104,7 @@ def get_liminal_prompts():
                 res_json = response.json()
                 if 'choices' in res_json:
                     raw_content = res_json['choices'][0]['message']['content']
-                    print(f"✅ [성공] {model_id} 모델이 유기적 연결성과 단일 서사 톤이 극대화된 10컷 시퀀스를 완성했습니다.")
+                    print(f"✅ [성공] {model_id} 모델이 특정 문화권의 초구체적 리미널 시퀀스를 완성했습니다.")
                     return json.loads(raw_content)
             print(f"⚠️ [우회] {model_id} 에러 발생 (코드 {response.status_code}). 차선책으로 이동.")
         except Exception as e:
@@ -134,7 +134,7 @@ def generate_image(prompt, index):
                     file_path = f"liminal_{index}.png"
                     with open(file_path, "wb") as f:
                         f.write(response.content)
-                    print(f"✅ [렌더링 성공] {model_path}를 통해 {index+1}번째 컷의 유기적인 이미지를 확보했습니다.")
+                    print(f"✅ [렌더링 성공] {model_path}를 통해 {index+1}번째 컷의 초구체적 프리뷰 이미지를 확보했습니다.")
                     return file_path
                 
                 elif response.status_code == 429:
@@ -154,7 +154,7 @@ def generate_image(prompt, index):
     return None
 
 def send_to_telegram(series_title, title, desc, img_path):
-    """4. 텔레그램으로 완벽하게 연결된 10개의 컷과 훅 타이틀 전송"""
+    """4. 텔레그램으로 완벽하게 연결된 10개의 초구체적 컷과 훅 타이틀 전송"""
     caption = f"🏢 *Liminal 10-Cut Film:* {series_title}\n\n🎬 *{title}*\n*Description:* {desc}"
     
     if img_path and os.path.exists(img_path):
@@ -172,12 +172,12 @@ if __name__ == "__main__":
     try:
         res_data = get_liminal_prompts()
         scenes = res_data.get('scenes', [])
-        series_title = res_data.get('series_title', 'A Film Captured by a Building That Cannot Exist')
+        series_title = res_data.get('series_title', 'The Architecture That Trapped Us')
         
         if not scenes:
-            print("❌ 모든 무료 모델 리스트를 순회했으나 완벽하게 연결된 10컷 데이터 확보에 실패했습니다.")
+            print("❌ 모든 무료 모델 리스트를 순회했으나 초구체적 10컷 데이터 확보에 실패했습니다.")
         else:
-            print(f"🚀 총 {len(scenes)}개의 유기적으로 연결된 리미널 시퀀스 생성을 시작합니다.")
+            print(f"🚀 총 {len(scenes)}개의 유기적으로 연결된 초구체적 리미널 시퀀스 생성을 시작합니다.")
             for i, scene in enumerate(scenes):
                 img_file = generate_image(scene['video_prompt'], i)
                 send_to_telegram(series_title, scene['title'], scene['description'], img_file)
