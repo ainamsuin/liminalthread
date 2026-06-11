@@ -44,7 +44,7 @@ def get_active_free_models():
     return ["openrouter/free"]
 
 def get_liminal_prompts():
-    """2. 공간의 절대적 정적 유지와 카메라 움직임을 극도로 제한한 10단 리미널 시퀀스를 생성합니다."""
+    """2. 웹 실기반의 리미널/백룸/드림코어 개념과 카메라 무빙 극제한 사양을 주입한 프롬프트를 생성합니다."""
     free_models = get_active_free_models()
     
     url = "https://openrouter.ai/api/v1/chat/completions"
@@ -52,41 +52,39 @@ def get_liminal_prompts():
         "Authorization": f"Bearer {OPENROUTER_KEY}",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://github.com",
-        "X-Title": "Pure Static Liminal Director"
+        "X-Title": "Pure Web-Based Liminal Director"
     }
     
-    # 💡 공간 불변 규칙(Static Space Rule) 및 카메라 움직임 극제한(Restrained Camera) 지시문 주입
+    # 💡 텍스트/사람/Dolly 금지, 보행 감각 및 정적 화면, 실제 웹 기반 리미널 사양 주입
     system_msg = (
-        "You are an expert cinematic Liminal Space director specializing in purely static, frozen, and architecturally eerie environmental short films.\n"
-        "Each cut must be 7 to 8 seconds long. The entire 10-cut sequence must feel like a quiet, slow first-person observation of a single location, completely devoid of human life.\n\n"
-        "--- 🚨 THE GOLDEN LAW: THE STRANGENESS IS THE SPACE ITSELF 🚨 ---\n"
-        "1. NO SPATIAL MORPHING OR SHIFTING: The space, walls, objects, and geometry must NEVER change, morph, dissolve, or distort during the shot. The environment is entirely permanent and fixed. The eerie wrongness comes solely from its original, permanent, frozen architectural state (e.g., a real staircase that simply terminates at a solid ceiling).\n"
-        "2. EXTREMELY RESTRAINED CAMERA: Absolutely NO active tracking shots, NO dynamic dolly shots, and NO dramatic camera travel. The camera must capture the absolute stillness of the space. Only three framing methods are allowed:\n"
-        "   - Method A [Completely Static]: A locked-off, entirely unmoving tripod or surveillance camera view where nothing moves except perhaps a soft light reflection.\n"
-        "   - Method B [Slow Stationary Looking Around]: A stationary camera performing an agonizingly slow, subtle pan or tilt from a single fixed point, simply observing the architecture.\n"
-        "   - Method C [Barely Noticeable Creep]: An incredibly slow, minute forward drift that is almost imperceptible, emphasizing the frozen weight of the corridor.\n\n"
-        "--- 🌏 CULTURAL CONTEXT SWITCHING (Select EXACTLY ONE per generation) ---\n"
-        "- JAPAN: Empty, late-night suburban train stations, 24/7 convenience store interiors, narrow residential alleyways under sodium vapor lights.\n"
-        "- USA: Dead suburban shopping malls from the 90s, endless empty hotel corridors with repetitive carpets, massive corporate office parks after hours.\n"
-        "- RUSSIA/POST-SOVIET: Colossal Brutalist concrete monolith architecture, repeating infinite apartment complex hallways, sterile empty clinic waiting areas.\n"
-        "- UK: Abandoned 70s brutalist multi-story parking garages, empty laundrettes under clinical fluorescent lights.\n"
-        "- SOUTH KOREA: Empty 24/7 PC Bangs (internet cafes) after hours, massive infinite apartment complex stairwells, deserted academy (hagwon) corridors at night.\n\n"
-        "--- 🚨 NO PEOPLE & IMMERSIVE FOCUSING SOUND 🚨 ---\n"
-        "- Absolutely no human figures, silhouettes, or shadows. Completely vacant spaces.\n"
-        "- Focus on immersive, non-threatening background sounds that enhance concentration: 'soft air-conditioning hiss', 'calm ambient room tone', 'the profound echo of quietness', 'a gentle, steady ventilation whir'. No harsh or startling noises.\n\n"
-        "--- 🎥 CINEMATOGRAPHIC TERMINOLOGY MANDATE ---\n"
-        "The 'video_prompt' and 'description' must explicitly define the static physics. Use terms like: 'locked-off static tripod framing', 'agonizingly slow 8-second stationary pan', 'imperceptible micro-creep forward', 'wide-angle flat perspective emphasizing the unmoving, frozen geometry', 'raw consumer camcorder tape texture (VHS softness)'.\n\n"
+        "You are an expert cinematic director specializing in web-authenticated 'Liminal Space', 'The Backrooms', and 'Dreamcore' aesthetics.\n"
+        "Your task is to direct a single, visually continuous 10-cut narrative sequence. Each cut is exactly 7 to 8 seconds long.\n\n"
+        "--- 🚨 ABSOLUTE PROHIBITIONS (STRICTLY FORBIDDEN) 🚨 ---\n"
+        "1. NO DOLLY MOVEMENT: Absolutely zero dolly-in, dolly-out, dolly tracking, or mechanical drone/slider movements.\n"
+        "2. NO TEXT: No text, letters, signs, numbers, captions, watermarks, or overlays anywhere on the walls, doors, or screen.\n"
+        "3. NO PEOPLE: Completely vacant spaces. Absolutely no human figures, shadows, silhouettes, or body parts.\n\n"
+        "--- 🚨 ALLOWED CAMERA PHYSICS & TERMS (PROFESSIONAL CINEMATOGRAPHY) 🚨 ---\n"
+        "You must strictly alternate or use only these three professional framing camera behaviors:\n"
+        "  - Behavior A [Completely Static]: A locked-off static tripod composition. The frame is completely still, capturing the frozen, eerie stillness of the environment.\n"
+        "  - Behavior B [Stationary Turning Gaze]: A fixed tripod position executing a slow stationary pan or slow stationary tilt, simply scanning the architecture without moving position.\n"
+        "  - Behavior C [First-Person Walking Gait]: If the camera moves forward, it MUST be a first-person realistic walking perspective with a subtle natural head-bob and organic gait, feeling like an actual human slowly walking, NOT a mechanical slider or drone.\n\n"
+        "--- 🚨 WEB-BASED REALITY-GLITCH PRINCIPLES (Liminal / Backrooms / Dreamcore) 🚨 ---\n"
+        "- Ground every scene strictly on real web-documented concepts: infinite yellow-wallpapered corporate grids (Backrooms Level 0), sterile tiled indoor poolrooms (Poolrooms), 90s dead suburban spaces, and nostalgic hazy light blooms (Dreamcore).\n"
+        "- Spatial Permanence: The space itself must NEVER morph, dissolve, or change dynamically during the shot. The strangeness comes solely from its original, permanent, frozen architectural anomaly (95% real-world accuracy, 5% architectural wrongness like a staircase terminating directly into a flat concrete ceiling or an exit hallway leading to a solid brick wall).\n\n"
+        "--- 🚨 CONTINUITY & SINGLE TONE MANDATE ---\n"
+        "- Cut N must physically begin exactly where Cut N-1 left off. Maintain absolute visual continuity.\n"
+        "- Select EXACTLY ONE cultural/location master theme at the beginning, and enforce a unified color palette, texture, and non-threatening focusing sound (e.g., soft air-conditioning hiss, profound ambient room tone echo) across all 10 cuts.\n\n"
         "--- OUTPUT FORMAT ---\n"
         "Output must be strictly valid JSON matching this schema (all text fields must be entirely in ENGLISH):\n"
         "{\n"
-        "  \"series_title\": \"[A compelling, viral-ready English video title reflecting the frozen environment]\",\n"
-        "  \"chosen_culture\": \"[The ONE culture selected for this generation, e.g., 'SOUTH KOREA']\",\n"
-        "  \"chosen_location\": \"[The specific location within that culture, e.g., 'hagwon corridor']\",\n"
+        "  \"series_title\": \"[A compelling English video title capturing the nostalgic dreamcore void]\",\n"
+        "  \"chosen_culture\": \"[The ONE culture selected, e.g., 'SOUTH KOREA', 'USA', 'JAPAN']\",\n"
+        "  \"chosen_location\": \"[The specific location, e.g., 'empty internet cafe', '90s dead mall']\",\n"
         "  \"scenes\": [\n"
         "    {\n"
-        "      \"title\": \"Cut [1-10]: [Blueprint Stage Name] - [Grounded Location Detail]\",\n"
-        "      \"description\": \"[Detailed English summary of this cut's geography, explaining how the stationary camera or micro-creep framing connects logically to the previous point in space]\",\n"
-        "      \"video_prompt\": \"[8-second English text-to-video prompt forcing a completely static or slow-pan frame, unmoving/non-morphing architectural anomalies, realistic material textures, focusing sound, and vintage analog camera grain]\"\n"
+        "      \"title\": \"Cut [1-10]: [Blueprint Stage Name] - [Unified Concept Detail]\",\n"
+        "      \"description\": \"[Detailed English explanation of how this camera viewpoint logically inherits the position of the previous cut, describing the stillness and the focusing sound]\",\n"
+        "      \"video_prompt\": \"[8-second English text-to-video prompt forcing a locked-off static frame or first-person walking gait, unmoving architectural paradox, no people, no text, vintage analog camcorder grain, soft overexposed light halation, and a calm ambient room tone]\"\n"
         "    }\n"
         "  ]\n"
         "}"
@@ -105,7 +103,7 @@ def get_liminal_prompts():
                 res_json = response.json()
                 if 'choices' in res_json:
                     raw_content = res_json['choices'][0]['message']['content']
-                    print(f"✅ [성공] {model_id} 모델이 정적 보존 법칙이 적용된 리미널 시퀀스를 완성했습니다.")
+                    print(f"✅ [성공] {model_id} 모델이 정적 융합 리미널 프롬프트 생성을 완료했습니다.")
                     return json.loads(raw_content)
             print(f"⚠️ [우회] {model_id} 에러 발생 (코드 {response.status_code}). 차선책으로 이동.")
         except Exception as e:
@@ -135,7 +133,7 @@ def generate_image(prompt, index):
                     file_path = f"liminal_{index}.png"
                     with open(file_path, "wb") as f:
                         f.write(response.content)
-                    print(f"✅ [렌더링 성공] {model_path}를 통해 {index+1}번째 컷의 정적 이미지를 확보했습니다.")
+                    print(f"✅ [렌더링 성공] {model_path}를 통해 {index+1}번째 컷의 유기적 이미지를 확보했습니다.")
                     return file_path
                 
                 elif response.status_code == 429:
@@ -155,8 +153,8 @@ def generate_image(prompt, index):
     return None
 
 def send_to_telegram(chosen_culture, chosen_location, series_title, title, desc, img_path):
-    """4. 텔레그램으로 완벽하게 고정된 정적 10개 컷과 훅 타이틀 전송"""
-    caption = f"🏢 *Static Liminal 10-Cut ({chosen_culture} - {chosen_location}):* {series_title}\n\n🎬 *{title}*\n*Description:* {desc}"
+    """4. 텔레그램으로 완벽하게 제어된 정적 10개 컷과 가이드 발송"""
+    caption = f"🏢 *Liminal Masterpiece ({chosen_culture} - {chosen_location}):* {series_title}\n\n🎬 *{title}*\n*Description:* {desc}"
     
     if img_path and os.path.exists(img_path):
         url = f"https://api.telegram.org/bot{TG_TOKEN}/sendPhoto"
@@ -173,14 +171,14 @@ if __name__ == "__main__":
     try:
         res_data = get_liminal_prompts()
         scenes = res_data.get('scenes', [])
-        series_title = res_data.get('series_title', 'The Static Reality')
+        series_title = res_data.get('series_title', 'A Dream Encased in Concrete')
         chosen_culture = res_data.get('chosen_culture', 'Unknown')
         chosen_location = res_data.get('chosen_location', 'Unknown')
         
         if not scenes:
-            print("❌ 모든 무료 모델 리스트를 순회했으나 데이터 확보에 실패했습니다.")
+            print("❌ 모든 무료 모델 리스트를 순회했으나 완벽하게 제어된 10컷 데이터 확보에 실패했습니다.")
         else:
-            print(f"🚀 총 {len(scenes)}개의 정적 리미널 시퀀스 생성을 시작합니다.")
+            print(f"🚀 총 {len(scenes)}개의 고정형 '{chosen_culture} - {chosen_location}' 시퀀스 생성을 시작합니다.")
             for i, scene in enumerate(scenes):
                 img_file = generate_image(scene['video_prompt'], i)
                 send_to_telegram(chosen_culture, chosen_location, series_title, scene['title'], scene['description'], img_file)
