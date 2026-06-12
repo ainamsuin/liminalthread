@@ -44,7 +44,7 @@ def get_active_free_models():
     return ["openrouter/free"]
 
 def get_liminal_prompts():
-    """2. 웹 실기반의 리미널/백룸 개념과 초구체적 1000자 설명을 생성하는 프롬프트를 빌드합니다."""
+    """2. 돌리 촬영을 완벽히 차단하고 초구체적 1000자 설명을 생성하는 프롬프트를 빌드합니다."""
     free_models = get_active_free_models()
     
     url = "https://openrouter.ai/api/v1/chat/completions"
@@ -52,46 +52,46 @@ def get_liminal_prompts():
         "Authorization": f"Bearer {OPENROUTER_KEY}",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://github.com",
-        "X-Title": "Hyper-Detailed Liminal Director"
+        "X-Title": "Anti-Dolly Pure Liminal Director"
     }
     
-    # 💡 텍스트/사람/Dolly 금지, 보행 감각 및 정적 화면, 실제 웹 기반 리미널 사양 주입 + 초구체적 1000자 설명 지시
+    # 💡 [핵심 패치] DOLLY 무빙에 대한 다중 경고 및 원천 단어 사용 금지령 추가
     system_msg = (
         "You are an expert cinematic director specializing in web-authenticated 'Liminal Space', 'The Backrooms', and 'Dreamcore' aesthetics.\n"
         "Your task is to direct a single, visually continuous 10-cut narrative sequence. Each cut is exactly 7 to 8 seconds long.\n\n"
-        "--- 🚨 ABSOLUTE PROHIBITIONS (STRICTLY FORBIDDEN) 🚨 ---\n"
-        "1. NO DOLLY MOVEMENT: Absolutely zero dolly-in, dolly-out, dolly tracking, or mechanical drone/slider movements.\n"
-        "2. NO TEXT: No text, letters, signs, numbers, captions, watermarks, or overlays anywhere.\n"
+        "--- 🚨 CRITICAL BAN: ABSOLUTE PROHIBITIONS (STRICTLY FORBIDDEN) 🚨 ---\n"
+        "1. ABSOLUTELY NO DOLLY MOVEMENT: Total ban on dolly-in, dolly-out, dolly tracking, zoom, or mechanical slider/crane/drone sweeps. NEVER use the word 'dolly' or 'tracking' in any of your outputs, descriptions, or video prompts.\n"
+        "2. NO TEXT: No text, letters, signs, numbers, captions, watermarks, or overlays anywhere in the frame.\n"
         "3. NO PEOPLE: Completely vacant spaces. Absolutely no human figures, shadows, silhouettes, or body parts.\n\n"
-        "--- 🚨 ALLOWED CAMERA PHYSICS & TERMS (PROFESSIONAL CINEMATOGRAPHY) 🚨 ---\n"
-        "Use only these three professional framing camera behaviors:\n"
-        "  - Behavior A [Completely Static]: A locked-off static tripod composition. The frame is completely still.\n"
-        "  - Behavior B [Stationary Turning Gaze]: A fixed tripod position executing a slow stationary pan or slow stationary tilt.\n"
-        "  - Behavior C [First-Person Walking Gait]: If the camera moves forward, it MUST be a first-person realistic walking perspective with a subtle natural head-bob and organic gait.\n\n"
+        "--- 🚨 ALLOWED CAMERA PHYSICS ONLY (PROFESSIONAL CINEMATOGRAPHY) 🚨 ---\n"
+        "You are restricted to ONLY these three pure camera behaviors. Any mechanical smoothing is a violation:\n"
+        "  - Behavior A [Completely Static]: A locked-off static tripod composition. The frame is completely still, frozen in time.\n"
+        "  - Behavior B [Stationary Turning Gaze]: A fixed tripod position executing an agonizingly slow stationary pan or stationary tilt, mimicking a security camera or a person standing completely still and turning their head.\n"
+        "  - Behavior C [First-Person Walking Gait]: If and only if the camera advances forward, it MUST be a realistic first-person walking perspective with a subtle, organic, imperfect human head-bob and step-gait rhythm. It must feel like an actual human awkwardly walking forward, completely free of smooth mechanical tracks, wheels, or robotic stabilizers.\n\n"
         "--- 🚨 WEB-BASED REALITY-GLITCH PRINCIPLES (Liminal / Backrooms / Dreamcore) 🚨 ---\n"
         "- Ground every scene strictly on real web-documented concepts: infinite yellow-wallpapered corporate grids (Backrooms Level 0), sterile tiled indoor poolrooms (Poolrooms), 90s dead suburban spaces, and nostalgic hazy light blooms (Dreamcore).\n"
-        "- Spatial Permanence: The space itself must NEVER morph or change during the shot. The strangeness comes from its original, permanent, frozen architectural anomaly (95% real-world accuracy, 5% architectural wrongness).\n\n"
+        "- Spatial Permanence: The space itself must NEVER morph, warp, or dissolve during the shot. The environment is fixed and solid. The strangeness comes from its original, frozen architectural anomaly (95% real-world accuracy, 5% architectural wrongness like a corridor ending in a solid brick wall).\n\n"
         "--- 🚨 CONTINUITY & SINGLE TONE MANDATE ---\n"
         "- Cut N must physically begin exactly where Cut N-1 left off. Maintain absolute visual continuity.\n"
         "- Select EXACTLY ONE cultural/location master theme at the beginning, and enforce a unified color palette, texture, and non-threatening focusing sound (e.g., soft air-conditioning hiss, profound ambient room tone echo) across all 10 cuts.\n\n"
         "--- 🚨 HYPER-DETAILED NARRATIVE DESCRIPTION MANDATE (1000 Characters Target) 🚨 ---\n"
-        "The 'description' field for EACH cut MUST be an extremely dense, hyper-detailed narrative exposition. Aim for approximately 1000 characters in English per cut. You must meticulously detail:\n"
-        "- A micro-scale analysis of the environment: the specific texture of the aged linoleum scuffs, water stains on acoustic ceiling tiles, the dust accumulation on specific surfaces.\n"
-        "- In-depth lighting analysis: the precise color temperature and source of light (e.g., flickering 3500K fluorescent vs soft 5000K daylight bloomed through a dirty skylight), how shadows create oppressive flatness or depth.\n"
-        "- A granular inventory of mundane objects: specific patterns on carpets, discoloration on wall paint, specific positions of empty cubicles.\n"
-        "- Immersive sensory details: the specific scent of recycled, stale air, the weight of the absolute isolation, and a deep breakdown of the non-threatening focusing sound (e.g., the rhythmic whir of a distant fan, the subtle hiss of a specific ventilation vent).\n"
-        "- Perfect spatial continuity: detailed mapping of the observer's exact physical steps from the previous terminal point.\n\n"
+        "The 'description' field for EACH cut MUST be an extremely dense, long-form narrative exposition (~1000 characters in English). You must detail:\n"
+        "- Micro-scale analysis: scuffed floor tiles, dust motes frozen in light beams, discoloration on wallpaper seams.\n"
+        "- Lighting analysis: exact light source and color temp (e.g., hum-less 4000K fluorescent lamps or dim sodium spill), flat static shadows.\n"
+        "- Absolute stillness: emphasize that the space is entirely motionless and quiet.\n"
+        "- Sound design: specific breakdown of the immersive focusing sound drawing the viewer into the scene.\n"
+        "- Perfect spatial mapping: precise coordinates of the first-person perspective relative to the previous shot.\n\n"
         "--- OUTPUT FORMAT ---\n"
-        "Output must be strictly valid JSON matching this schema (all text fields must be entirely in ENGLISH):\n"
+        "Output must be strictly valid JSON matching this schema (all text fields must be entirely in ENGLISH). Remember, do NOT use the word 'dolly' anywhere:\n"
         "{\n"
         "  \"series_title\": \"[A compelling English video title]\",\n"
-        "  \"chosen_culture\": \"[e.g., 'USA', 'JAPAN']\",\n"
-        "  \"chosen_location\": \"[e.g., '90s dead mall']\",\n"
+        "  \"chosen_culture\": \"[e.g., 'USA', 'SOUTH KOREA']\",\n"
+        "  \"chosen_location\": \"[e.g., 'infinite stairwell', 'dead office grid']\",\n"
         "  \"scenes\": [\n"
         "    {\n"
         "      \"title\": \"Cut [1-10]: [Blueprint Stage Name] - [Unified Concept Detail]\",\n"
-        "      \"description\": \"[AN EXTREMELY DENSE, LONG-FORM ENGLISH NARRATIVE AIMING FOR ~1000 CHARACTERS. Inventory micro-textures, light sources, air quality, sounds, and perfect spatial mapping from the previous terminal point. Detail the profound stillness.]\",\n"
-        "      \"video_prompt\": \"[8-second English text-to-video prompt forcing static frame or FP Walking, specific architectural paradox, vintage camcorder grain, light bloom, and focusing sound]\"\n"
+        "      \"description\": \"[AN EXTREMELY DENSE, LONG-FORM ENGLISH NARRATIVE AIMING FOR ~1000 CHARACTERS. Meticulously inventory textures, static lights, air quality, focusing sounds, and exact spatial positioning. Emphasize the absolute lack of mechanical camera travel.]\",\n"
+        "      \"video_prompt\": \"[8-second English text-to-video prompt forcing a locked-off static frame or a human walking gait, unmoving architectural paradox, no people, no text, no dolly keywords, vintage analog camcorder grain, soft overexposed light halation, and a calm ambient room tone]\"\n"
         "    }\n"
         "  ]\n"
         "}"
@@ -110,7 +110,7 @@ def get_liminal_prompts():
                 res_json = response.json()
                 if 'choices' in res_json:
                     raw_content = res_json['choices'][0]['message']['content']
-                    print(f"✅ [성공] {model_id} 모델이 초구체적 1000자 설명 프롬프트 생성을 완료했습니다.")
+                    print(f"✅ [성공] {model_id} 모델이 정적-안티돌리 1000자 프롬프트 생성을 완료했습니다.")
                     return json.loads(raw_content)
             print(f"⚠️ [우회] {model_id} 에러 발생 (코드 {response.status_code}). 차선책으로 이동.")
         except Exception as e:
@@ -140,7 +140,7 @@ def generate_image(prompt, index):
                     file_path = f"liminal_{index}.png"
                     with open(file_path, "wb") as f:
                         f.write(response.content)
-                    print(f"✅ [렌더링 성공] {model_path}를 통해 {index+1}번째 컷의 유기적 이미지를 확보했습니다.")
+                    print(f"✅ [렌더링 성공] {model_path}를 통해 {index+1}번째 컷의 정적 이미지를 확보했습니다.")
                     return file_path
                 
                 elif response.status_code == 429:
@@ -160,8 +160,7 @@ def generate_image(prompt, index):
     return None
 
 def send_to_telegram(chosen_culture, chosen_location, series_title, title, desc, img_path):
-    """4. 텔레그램으로 완벽하게 제어된 정적 10개 컷과 초구체적 설명 발송"""
-    # 설명이 매우 길어지므로 Markdown 헤더로 구분감 부여
+    """4. 텔레그램으로 완벽하게 제어된 안티돌리 컷과 초구체적 설명 발송"""
     caption = f"🏢 *Liminal Masterpiece ({chosen_culture} - {chosen_location}):* {series_title}\n\n🎬 *{title}*\n\n📜 *Detailed Narrative:* \n{desc}"
     
     if img_path and os.path.exists(img_path):
@@ -169,7 +168,6 @@ def send_to_telegram(chosen_culture, chosen_location, series_title, title, desc,
         with open(img_path, "rb") as photo:
             res = requests.post(url, data={"chat_id": TG_CHAT_ID, "caption": caption, "parse_mode": "Markdown"}, files={"photo": photo})
     else:
-        # 이미지가 실패하더라도 1000자 수준의 상세 기획서는 전송
         url = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
         res = requests.post(url, data={"chat_id": TG_CHAT_ID, "text": f"{caption}\n\n⚠️ (Image Generation Timeout/429)", "parse_mode": "Markdown"})
     
@@ -191,7 +189,6 @@ if __name__ == "__main__":
             for i, scene in enumerate(scenes):
                 img_file = generate_image(scene['video_prompt'], i)
                 send_to_telegram(chosen_culture, chosen_location, series_title, scene['title'], scene['description'], img_file)
-                # 프리뷰 생성 429 차단을 위한 대기 시간 유지 (6초)
                 time.sleep(6)
             print("🎉 10컷 마스터 디렉터 에이전트 미션 완수!")
     except Exception as e:
