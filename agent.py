@@ -44,7 +44,7 @@ def get_active_free_models():
     return ["openrouter/free"]
 
 def get_liminal_prompts():
-    """2. 모든 컷을 초광각 고정 샷으로 통일하고, 컷 간 거시적 인과관계를 부여한 프롬프트를 빌드합니다."""
+    """2. 오직 필요한 사양만 긍정문으로 주입한 리셋된 프롬프트 엔진"""
     free_models = get_active_free_models()
     
     url = "https://openrouter.ai/api/v1/chat/completions"
@@ -52,43 +52,35 @@ def get_liminal_prompts():
         "Authorization": f"Bearer {OPENROUTER_KEY}",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://github.com",
-        "X-Title": "Macro-Continuous Liminal Director"
+        "X-Title": "Pure Reset Dreamcore Director"
     }
     
-    # 💡 [핵심 연출 패치] 앵글 다변화 제외, 전 컷 초광각 와이드 샷 고정 및 매크로 공간 연계성 강화
+    # 💡 [프롬프트 원점 리셋] 금지어 삭제, 오직 해야 할 'EWS 고정형 드림코어 사양'만 확실히 명시
     system_msg = (
         "You are an expert cinematic director specializing in web-authenticated 'Liminal Space', 'The Backrooms', and 'Dreamcore' aesthetics.\n"
-        "Your task is to direct a single, visually continuous 10-cut narrative sequence. Each cut is exactly 7 to 8 seconds long.\n\n"
-        "--- 🚨 CRITICAL BAN: ABSOLUTE PROHIBITIONS (STRICTLY FORBIDDEN) 🚨 ---\n"
-        "1. NO CAMERA MOVEMENT & NO ANGLE VARIETY: Absolutely ZERO Dolly, Zero Walking, Zero Pan, Zero Tilt, Zero Roll, Zero Zoom. Completely remove close-ups, medium shots, or shifting camera heights. The camera must be 100% PERFECTLY LOCKED-OFF AND STATIC on a tripod for every single shot. The frame never moves.\n"
-        "2. NO TEXT: No text, letters, signs, numbers, captions, watermarks, or overlays anywhere.\n"
-        "3. NO PEOPLE: Completely vacant spaces. Absolutely no human figures, shadows, silhouettes, or body parts.\n\n"
-        "--- 📐 UNIFIED FRAMING MANDATE: DISTANT EXTREME WIDE SHOTS ONLY 🚨 ---\n"
-        "ALL 10 CUTS MUST EXCLUSIVELY USE AN EXTREME WIDE SHOT (EWS) OR A DISTANT ESTABLISHING SHOT framed from a far-off vantage point. Every single frame must capture the grand, macro-scale layout of the massive architectural structure from afar. The perspective must look intensely realistic, yet clearly reveal an eerie, uncanny spatial boundary or anomaly permanently frozen in the distance.\n\n"
-        "--- ⛓️ STRUCTURAL CONTINUITY & MACRO-LINKAGE MANDATE ---\n"
-        "The relationship between consecutive cuts must be undeniably explicit and causally linked within the same overarching layout:\n"
-        "- Cut N must frame the exact architectural space, adjacent wing, or deep corridor that was visible in the far background, periphery, or through a distant doorway of Cut N-1.\n"
-        "- The sequence must feel like a gradual, logical progression deeper into the heart of a single massive complex (e.g., moving from a vast dead mall atrium to the contiguous infinite wing seen from afar, then looking back at the gateway structure), always maintaining the detached, distant wide perspective.\n\n"
-        "--- 🚨 DREAMCORE & LIMINAL VISUAL ARCHETYPES (AUTHENTIC WEB DEFINITION) 🚨 ---\n"
-        "- Theme: Unsettling nostalgia, 90s/00s childhood spaces (vacant play arenas, dead shopping cores, empty indoor pool matrices), soft pastel tones, intense hazy light blooms (halation), and low-fi vintage flash photography artifacts with flat static shadows.\n"
-        "- Spatial Permanence: The space itself must NEVER morph, warp, or change dynamically during the shot. The environment is fixed and solid.\n\n"
-        "--- 🚨 HYPER-DETAILED NARRATIVE DESCRIPTION MANDATE (1000 Characters Target) 🚨 ---\n"
-        "The 'description' field for EACH cut MUST be an extremely dense, long-form narrative exposition (~1000 characters in English). Meticulously inventory:\n"
-        "- Precise macro-linkage mapping: Clearly detail exactly which distant landmark, corridor, or geometric feature from Cut N-1 is now being viewed from this new far-off static standpoint.\n"
-        "- Micro-scale analysis from afar: how the vast floor scuffs blur into the distance, repeating tile patterns, water stains on massive acoustic ceilings.\n"
-        "- Lighting analysis: exact light source and color temp (e.g., hum-less 3500K flickering grid lamps, massive sun-bleached skylight halation), flat static shadows cast across huge spans.\n"
-        "- Sound design: specific breakdown of the immersive focusing sound (e.g., the profound, echoing hollow rumble of an empty ventilation system, a soft steady hiss) drawing the viewer in.\n\n"
+        "Your task is to direct a single, visually continuous 4-cut narrative sequence. Each cut is exactly 7 to 8 seconds long.\n\n"
+        "--- 📐 UNIFIED FRAMING MANDATE: DISTANT EXTREME WIDE SHOTS ONLY ---\n"
+        "- Every single cut (Cuts 1 to 4) must strictly utilize an Extreme Wide Shot (EWS) or a Distant Establishing Shot.\n"
+        "- Position the camera at a far-off, fixed vantage point to capture the grand, macro-scale layout of the entire building or the massive interior space from afar.\n"
+        "- The framing must remain perfectly still, frozen, and locked-off on a static tripod for the entire duration of the shot.\n\n"
+        "--- 🚨 DREAMCORE & LIMINAL VISUAL ARCHETYPES ---\n"
+        "- Environment: Ground the scenes in vacant 1990s to 2000s nostalgic spaces. Focus exclusively on locations such as empty indoor playgrounds, dead shopping malls, vacant school corridors, sterile tiled indoor swimming pools, or fast-food kids zones.\n"
+        "- Lighting & Color: Apply a distinct aesthetic palette consisting of soft pastel tones, yellow fluorescent lighting grid illumination, and heavy hazy light bloom (halation).\n"
+        "- Camera Quality: Replicate vintage old film textures, low-fi noise, and the flat lighting artifacts of retro consumer flash photography.\n"
+        "- Spatial Rule: The architectural layout must remain entirely fixed, solid, and structurally permanent during the shot. The space must look realistic, yet feature an uncanny, strange architectural boundary or subtle spatial error in its construction.\n\n"
+        "--- ⛓️ VISUAL CONTINUITY & HYPER-DETAILED NARRATIVE (1000 Characters Target) ---\n"
+        "- Enforce strict visual continuity across the 4 cuts. Each scene must logically inherit the layout of the previous space, moving deeper into the single massive nostalgic complex.\n"
+        "- The 'description' field for EACH cut MUST be an extremely dense, long-form narrative exposition in English, aiming for approximately 1000 characters. You must meticulously detail: the macro architectural geometry, the precise positioning of the distant camera standpoint, the behavior of the fluorescent light sources, the exact nostalgic textures (e.g., specific scuffs on pastel playground plastic, faded carpet patterns), and the deep echoing room tone.\n\n"
         "--- OUTPUT FORMAT ---\n"
         "Output must be strictly valid JSON matching this schema (all text fields must be entirely in ENGLISH):\n"
         "{\n"
-        "  \"series_title\": \"[A poetic, macro-scale English video title]\",\n"
-        "  \"chosen_culture\": \"[e.g., 'USA', 'SOUTH KOREA']\",\n"
-        "  \"chosen_location\": \"[e.g., 'infinite subterranean poolroom', 'abandoned megamall void']\",\n"
+        "  \"series_title\": \"[A poetic, nostalgia-driven English video title]\",\n"
+        "  \"chosen_location_type\": \"[e.g., '90s vacant indoor playground', 'abandoned pastel mall void']\",\n"
         "  \"scenes\": [\n"
         "    {\n"
-        "      \"title\": \"Cut [1-10]: [Blueprint Stage Name] - [Unified Macro Detail]\",\n"
-        "      \"description\": \"[AN EXTREMELY DENSE, LONG-FORM ENGLISH NARRATIVE AIMING FOR ~1000 CHARACTERS. Meticulously explain the explicit structural link to the previous cut, the immense wide-shot distance, static textures, macro lighting, and non-threatening focusing sounds.]\",\n"
-        "      \"video_prompt\": \"[8-second English text-to-video prompt forcing a distant, PERFECTLY LOCKED-OFF EXTREME WIDE TRIPOD SHOT, macro dreamcore architecture explicitly linked to the prior space, vintage flash grain, light halation, and deep focusing sound.]\"\n"
+        "      \"title\": \"Cut [1-4]: [Blueprint Stage Name]\",\n"
+        "      \"description\": \"[AN EXTREMELY DENSE, LONG-FORM ENGLISH NARRATIVE AIMING FOR ~1000 CHARACTERS. Detail the macro layout, the structural connection to the previous space, the distant static perspective, lighting bloom, and deep room tone.]\",\n"
+        "      \"video_prompt\": \"[8-second English text-to-video prompt forcing a distant, PERFECTLY LOCKED-OFF EXTREME WIDE TRIPOD SHOT, macro dreamcore architecture, vintage flash photography artifacts, low-fi film grain, pastel tones, yellow fluorescent light halation, and quiet ambient room tone.]\"\n"
         "    }\n"
         "  ]\n"
         "}"
@@ -107,7 +99,7 @@ def get_liminal_prompts():
                 res_json = response.json()
                 if 'choices' in res_json:
                     raw_content = res_json['choices'][0]['message']['content']
-                    print(f"✅ [성공] {model_id} 모델이 초광각 연속형 10컷 구성을 완료했습니다.")
+                    print(f"✅ [성공] {model_id} 모델이 리셋된 드림코어 4컷 구성을 완료했습니다.")
                     return json.loads(raw_content)
             print(f"⚠️ [우회] {model_id} 에러 발생 (코드 {response.status_code}). 차선책으로 이동.")
         except Exception as e:
@@ -137,7 +129,7 @@ def generate_image(prompt, index):
                     file_path = f"liminal_{index}.png"
                     with open(file_path, "wb") as f:
                         f.write(response.content)
-                    print(f"✅ [렌더링 성공] {model_path}를 통해 {index+1}번째 초광각 고정 컷 프리뷰를 확보했습니다.")
+                    print(f"✅ [렌더링 성공] {model_path}를 통해 {index+1}번째 초광각 프리뷰를 확보했습니다.")
                     return file_path
                 
                 elif response.status_code == 429:
@@ -156,9 +148,9 @@ def generate_image(prompt, index):
     
     return None
 
-def send_to_telegram(chosen_culture, chosen_location, series_title, title, desc, img_path):
-    """4. 텔레그램으로 모든 컷이 초광각 고정 샷인 10개 컷과 관계성 기획서 발송"""
-    caption = f"🏢 *Extreme Wide Static Dreamcore ({chosen_culture} - {chosen_location}):* {series_title}\n\n🎬 *{title}*\n\n📜 *Detailed Narrative:* \n{desc}"
+def send_to_telegram(chosen_location_type, series_title, title, desc, img_path):
+    """4. 텔레그램으로 정제된 드림코어 4개 컷 발송"""
+    caption = f"🏢 *Extreme Wide Static Dreamcore ({chosen_location_type}):* {series_title}\n\n🎬 *{title}*\n\n📜 *Detailed Narrative:* \n{desc}"
     
     if img_path and os.path.exists(img_path):
         url = f"https://api.telegram.org/bot{TG_TOKEN}/sendPhoto"
@@ -166,7 +158,7 @@ def send_to_telegram(chosen_culture, chosen_location, series_title, title, desc,
             res = requests.post(url, data={"chat_id": TG_CHAT_ID, "caption": caption, "parse_mode": "Markdown"}, files={"photo": photo})
     else:
         url = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
-        res = requests.post(url, data={"chat_id": TG_CHAT_ID, "text": f"{caption}\n\n⚠️ (Image Generation Timeout/429 - Preview FAILED, but Prompts are Valid)", "parse_mode": "Markdown"})
+        res = requests.post(url, data={"chat_id": TG_CHAT_ID, "text": f"{caption}\n\n⚠️ (Image Generation Timeout/429 - Preview FAILED)", "parse_mode": "Markdown"})
     
     if res.status_code != 200:
         print(f"❌ 텔레그램 전송 실패 (코드 {res.status_code}): {res.text}")
@@ -175,18 +167,17 @@ if __name__ == "__main__":
     try:
         res_data = get_liminal_prompts()
         scenes = res_data.get('scenes', [])
-        series_title = res_data.get('series_title', 'The Immutable Architecture')
-        chosen_culture = res_data.get('chosen_culture', 'Unknown')
-        chosen_location = res_data.get('chosen_location', 'Unknown')
+        series_title = res_data.get('series_title', 'A Static Void')
+        chosen_location_type = res_data.get('chosen_location_type', 'Nostalgic Void')
         
         if not scenes:
             print("❌ 모든 무료 모델 리스트를 순회했으나 데이터 확보에 실패했습니다.")
         else:
-            print(f"🚀 총 {len(scenes)}개의 '초광각 전컷 고정' 시퀀스 생성을 시작합니다.")
+            print(f"🚀 총 {len(scenes)}개의 '초광각 고정형 드림코어' 시퀀스 생성을 시작합니다.")
             for i, scene in enumerate(scenes):
                 img_file = generate_image(scene['video_prompt'], i)
-                send_to_telegram(chosen_culture, chosen_location, series_title, scene['title'], scene['description'], img_file)
-                time.sleep(12) # 429 완화를 위한 쿨다운 유지
-            print("🎉 10컷 마스터 디렉터 에이전트 미션 완수!")
+                send_to_telegram(chosen_location_type, series_title, scene['title'], scene['description'], img_file)
+                time.sleep(12) # 429 API 보호 쿨다운
+            print("🎉 4컷 리셋 마스터 디렉터 에이전트 미션 완수!")
     except Exception as e:
         print(f"💥 스크립트 실행 중 치명적 에러 발생: {e}")
