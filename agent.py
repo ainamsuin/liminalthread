@@ -44,7 +44,7 @@ def get_active_free_models():
     return ["openrouter/free"]
 
 def get_liminal_prompts():
-    """2. 오직 필요한 사양만 긍정문으로 주입한 리셋된 프롬프트 엔진"""
+    """2. 5컷 연동, 포근한 드림코어 공간 및 300자 내외 요약 규칙이 주입된 프롬프트 빌더"""
     free_models = get_active_free_models()
     
     url = "https://openrouter.ai/api/v1/chat/completions"
@@ -52,35 +52,34 @@ def get_liminal_prompts():
         "Authorization": f"Bearer {OPENROUTER_KEY}",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://github.com",
-        "X-Title": "Pure Reset Dreamcore Director"
+        "X-Title": "Whimsical Dreamcore Director"
     }
     
-    # 💡 [프롬프트 원점 리셋] 금지어 삭제, 오직 해야 할 'EWS 고정형 드림코어 사양'만 확실히 명시
+    # 💡 [핵심 연출 패치] 5컷 제한, 단일 컨셉 공간, 동심/포근한 무드, 컷당 300자 내외 명시
     system_msg = (
-        "You are an expert cinematic director specializing in web-authenticated 'Liminal Space', 'The Backrooms', and 'Dreamcore' aesthetics.\n"
-        "Your task is to direct a single, visually continuous 4-cut narrative sequence. Each cut is exactly 7 to 8 seconds long.\n\n"
+        "You are an expert cinematic director specializing in web-authenticated 'Dreamcore' and 'Liminal Space' aesthetics.\n"
+        "Your task is to direct a single, visually continuous 5-cut narrative sequence. Each cut is exactly 7 to 8 seconds long.\n\n"
         "--- 📐 UNIFIED FRAMING MANDATE: DISTANT EXTREME WIDE SHOTS ONLY ---\n"
-        "- Every single cut (Cuts 1 to 4) must strictly utilize an Extreme Wide Shot (EWS) or a Distant Establishing Shot.\n"
-        "- Position the camera at a far-off, fixed vantage point to capture the grand, macro-scale layout of the entire building or the massive interior space from afar.\n"
-        "- The framing must remain perfectly still, frozen, and locked-off on a static tripod for the entire duration of the shot.\n\n"
-        "--- 🚨 DREAMCORE & LIMINAL VISUAL ARCHETYPES ---\n"
-        "- Environment: Ground the scenes in vacant 1990s to 2000s nostalgic spaces. Focus exclusively on locations such as empty indoor playgrounds, dead shopping malls, vacant school corridors, sterile tiled indoor swimming pools, or fast-food kids zones.\n"
-        "- Lighting & Color: Apply a distinct aesthetic palette consisting of soft pastel tones, yellow fluorescent lighting grid illumination, and heavy hazy light bloom (halation).\n"
-        "- Camera Quality: Replicate vintage old film textures, low-fi noise, and the flat lighting artifacts of retro consumer flash photography.\n"
-        "- Spatial Rule: The architectural layout must remain entirely fixed, solid, and structurally permanent during the shot. The space must look realistic, yet feature an uncanny, strange architectural boundary or subtle spatial error in its construction.\n\n"
-        "--- ⛓️ VISUAL CONTINUITY & HYPER-DETAILED NARRATIVE (1000 Characters Target) ---\n"
-        "- Enforce strict visual continuity across the 4 cuts. Each scene must logically inherit the layout of the previous space, moving deeper into the single massive nostalgic complex.\n"
-        "- The 'description' field for EACH cut MUST be an extremely dense, long-form narrative exposition in English, aiming for approximately 1000 characters. You must meticulously detail: the macro architectural geometry, the precise positioning of the distant camera standpoint, the behavior of the fluorescent light sources, the exact nostalgic textures (e.g., specific scuffs on pastel playground plastic, faded carpet patterns), and the deep echoing room tone.\n\n"
+        "- Every single cut (Cuts 1 to 5) must strictly utilize an Extreme Wide Shot (EWS) or a Distant Establishing Shot.\n"
+        "- The framing must remain perfectly still, frozen, and locked-off on a static tripod for the entire duration of every shot. No camera movement.\n\n"
+        "--- 🚨 SINGLE CONCEPTS & WHIMSICAL DREAMCORE STYLE ---\n"
+        "- Unified Location Concept: Select EXACTLY ONE massive child-centric nostalgic location for all 5 cuts (e.g., an endless pastel indoor play center, a colossal whimsical daycare void, or an infinite soft-tiled fantasy pool). Do not change the overall location theme between cuts.\n"
+        "- Atmosphere: The space must feel completely vacant and empty, yet intensely nostalgic and whimsical. It should evoke childhood comfort and innocence rather than fear. It must feel strange and dreamlike, but absolutely peaceful, warm, and non-threatening (no creepy or horrific elements).\n"
+        "- Visual Specifications: Use vast, sprawling macro layouts, soft pastel tones, warm yellow fluorescent grids, hazy light bloom (halation), and low-fi vintage flash photography artifacts with flat static shadows.\n"
+        "- Spatial Permanence: The space itself must remain structurally fixed and solid during the shot.\n\n"
+        "--- 📜 CONCISE DESCRIPTION RULE (300 Characters Target) ---\n"
+        "- The relationship between cuts must be causally linked, moving deeper into different angles of the same massive nostalgic complex.\n"
+        "- The 'description' field for EACH cut MUST be concise, aiming for approximately 300 characters in English. Briefly but vividly outline the vast layout, the dreamlike pastel environment, the soft lighting bloom, and the peaceful, silent room tone.\n\n"
         "--- OUTPUT FORMAT ---\n"
         "Output must be strictly valid JSON matching this schema (all text fields must be entirely in ENGLISH):\n"
         "{\n"
-        "  \"series_title\": \"[A poetic, nostalgia-driven English video title]\",\n"
-        "  \"chosen_location_type\": \"[e.g., '90s vacant indoor playground', 'abandoned pastel mall void']\",\n"
+        "  \"series_title\": \"[A poetic, whimsical English video title]\",\n"
+        "  \"unified_space_concept\": \"[The single chosen location type, e.g., 'Infinite Pastel Indoor Playground']\",\n"
         "  \"scenes\": [\n"
         "    {\n"
-        "      \"title\": \"Cut [1-4]: [Blueprint Stage Name]\",\n"
-        "      \"description\": \"[AN EXTREMELY DENSE, LONG-FORM ENGLISH NARRATIVE AIMING FOR ~1000 CHARACTERS. Detail the macro layout, the structural connection to the previous space, the distant static perspective, lighting bloom, and deep room tone.]\",\n"
-        "      \"video_prompt\": \"[8-second English text-to-video prompt forcing a distant, PERFECTLY LOCKED-OFF EXTREME WIDE TRIPOD SHOT, macro dreamcore architecture, vintage flash photography artifacts, low-fi film grain, pastel tones, yellow fluorescent light halation, and quiet ambient room tone.]\"\n"
+        "      \"title\": \"Cut [1-5]: [Blueprint Stage Name]\",\n"
+        "      \"description\": \"[A CONCISE ENGLISH NARRATIVE AIMING FOR ~300 CHARACTERS. Describe the vast vacant child-centric layout, peaceful dreamlike atmosphere, and soft halation.]\",\n"
+        "      \"video_prompt\": \"[8-second English text-to-video prompt forcing a distant, PERFECTLY LOCKED-OFF EXTREME WIDE TRIPOD SHOT, massive empty dreamcore child playground architecture, vintage flash artifacts, low-fi grain, pastel tones, warm yellow lighting halation, and peaceful silent room tone.]\"\n"
         "    }\n"
         "  ]\n"
         "}"
@@ -99,7 +98,7 @@ def get_liminal_prompts():
                 res_json = response.json()
                 if 'choices' in res_json:
                     raw_content = res_json['choices'][0]['message']['content']
-                    print(f"✅ [성공] {model_id} 모델이 리셋된 드림코어 4컷 구성을 완료했습니다.")
+                    print(f"✅ [성공] {model_id} 모델이 포근한 5컷 드림코어 구성을 완료했습니다.")
                     return json.loads(raw_content)
             print(f"⚠️ [우회] {model_id} 에러 발생 (코드 {response.status_code}). 차선책으로 이동.")
         except Exception as e:
@@ -148,9 +147,9 @@ def generate_image(prompt, index):
     
     return None
 
-def send_to_telegram(chosen_location_type, series_title, title, desc, img_path):
-    """4. 텔레그램으로 정제된 드림코어 4개 컷 발송"""
-    caption = f"🏢 *Extreme Wide Static Dreamcore ({chosen_location_type}):* {series_title}\n\n🎬 *{title}*\n\n📜 *Detailed Narrative:* \n{desc}"
+def send_to_telegram(unified_space_concept, series_title, title, desc, img_path):
+    """4. 텔레그램으로 정제된 포근한 드림코어 5개 컷 발송"""
+    caption = f"🧸 *Unified Dreamcore Void ({unified_space_concept}):* {series_title}\n\n🎬 *{title}*\n\n📜 *Detailed Narrative:* \n{desc}"
     
     if img_path and os.path.exists(img_path):
         url = f"https://api.telegram.org/bot{TG_TOKEN}/sendPhoto"
@@ -167,17 +166,17 @@ if __name__ == "__main__":
     try:
         res_data = get_liminal_prompts()
         scenes = res_data.get('scenes', [])
-        series_title = res_data.get('series_title', 'A Static Void')
-        chosen_location_type = res_data.get('chosen_location_type', 'Nostalgic Void')
+        series_title = res_data.get('series_title', 'A Peaceful Echo')
+        unified_space_concept = res_data.get('unified_space_concept', 'Whimsical Void')
         
         if not scenes:
             print("❌ 모든 무료 모델 리스트를 순회했으나 데이터 확보에 실패했습니다.")
         else:
-            print(f"🚀 총 {len(scenes)}개의 '초광각 고정형 드림코어' 시퀀스 생성을 시작합니다.")
+            print(f"🚀 총 {len(scenes)}개의 '단일 컨셉 초광각 고정형 드림코어' 시퀀스 생성을 시작합니다.")
             for i, scene in enumerate(scenes):
                 img_file = generate_image(scene['video_prompt'], i)
-                send_to_telegram(chosen_location_type, series_title, scene['title'], scene['description'], img_file)
+                send_to_telegram(unified_space_concept, series_title, scene['title'], scene['description'], img_file)
                 time.sleep(12) # 429 API 보호 쿨다운
-            print("🎉 4컷 리셋 마스터 디렉터 에이전트 미션 완수!")
+            print("🎉 5컷 마스터 디렉터 에이전트 미션 완수!")
     except Exception as e:
         print(f"💥 스크립트 실행 중 치명적 에러 발생: {e}")
