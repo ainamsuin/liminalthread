@@ -8,9 +8,15 @@ HF_KEY = os.getenv("HF_API_KEY")
 TG_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TG_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
+def clean_url(url_str):
+    """혹시 모를 마크다운 기호나 대괄호 잔재를 강제로 제거하는 유틸리티"""
+    return url_str.strip().lstrip('[').split(']')[0].strip()
+
 def get_active_free_models():
     """1. OpenRouter에서 무료 모델을 가져와 최신/고성능 순으로 정렬합니다."""
-    url = "[https://openrouter.ai/api/v1/models](https://openrouter.ai/api/v1/models)"
+    raw_url = "https://openrouter.ai/api/v1/models"
+    url = clean_url(raw_url)
+    
     try:
         response = requests.get(url, timeout=10)
         if response.status_code == 200:
@@ -47,11 +53,13 @@ def get_liminal_prompts():
     """2. 드림코어 프롬프트를 생성하고, 반환된 텍스트를 안전하게 디코딩합니다."""
     free_models = get_active_free_models()
     
-    url = "[https://openrouter.ai/api/v1/chat/completions](https://openrouter.ai/api/v1/chat/completions)"
+    raw_url = "https://openrouter.ai/api/v1/chat/completions"
+    url = clean_url(raw_url)
+    
     headers = {
         "Authorization": f"Bearer {OPENROUTER_KEY}",
         "Content-Type": "application/json",
-        "HTTP-Referer": "[https://github.com](https://github.com)",
+        "HTTP-Referer": "https://github.com",
         "X-Title": "Robust Dreamcore Director"
     }
     
@@ -98,13 +106,10 @@ def get_liminal_prompts():
                 if 'choices' in res_json:
                     raw_content = res_json['choices'][0]['message']['content'].strip()
                     
-                    # 💡 [방어 코드 1] 마크다운 잔재나 특수문자 정제
                     if raw_content.startswith("```"):
                         raw_content = raw_content.replace("```json", "").replace("```", "").strip()
                     
                     parsed_dict = json.loads(raw_content)
-                    
-                    # 💡 [방어 코드 2] 통째로 문자열화된 이중 인코딩 적발 시 재파싱
                     if isinstance(parsed_dict, str):
                         parsed_dict = json.loads(parsed_dict)
                         
@@ -127,7 +132,8 @@ def generate_image(prompt, index):
     headers = {"Authorization": f"Bearer {HF_KEY}"}
     
     for model_path in target_models:
-        model_url = f"https://router.huggingface.co/hf-inference/models/{model_path}"
+        raw_model_url = f"[https://router.huggingface.co/hf-inference/models/](https://router.huggingface.co/hf-inference/models/){model_path}"
+        model_url = clean_url(raw_model_url)
         max_retries = 3
         
         for attempt in range(max_retries):
@@ -163,11 +169,11 @@ def send_to_telegram(unified_space_concept, series_title, title, desc, img_path)
     caption = f"🧸 *Unified Dreamcore Void ({unified_space_concept}):* {series_title}\n\n🎬 *{title}*\n\n📜 *Detailed Narrative:* \n{desc}"
     
     if img_path and os.path.exists(img_path):
-        url = f"https://api.telegram.org/bot{TG_TOKEN}/sendPhoto"
+        url = clean_url(f"[https://api.telegram.org/bot](https://api.telegram.org/bot){TG_TOKEN}/sendPhoto")
         with open(img_path, "rb") as photo:
             res = requests.post(url, data={"chat_id": TG_CHAT_ID, "caption": caption, "parse_mode": "Markdown"}, files={"photo": photo})
     else:
-        url = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
+        url = clean_url(f"[https://api.telegram.org/bot](https://api.telegram.org/bot){TG_TOKEN}/sendMessage")
         res = requests.post(url, data={"chat_id": TG_CHAT_ID, "text": f"{caption}\n\n⚠️ (Image Generation Timeout/429 - Preview FAILED)", "parse_mode": "Markdown"})
     
     if res.status_code != 200:
@@ -177,7 +183,6 @@ if __name__ == "__main__":
     try:
         res_data = get_liminal_prompts()
         
-        # 💡 [방어 코드 3] res_data가 올바른 딕셔너리 구조인지 철저히 검증
         if not isinstance(res_data, dict):
             print("⚠️ 최상위 데이터가 딕셔너리 구조가 아닙니다. 기본값으로 강제 리셋합니다.")
             res_data = {}
@@ -186,7 +191,6 @@ if __name__ == "__main__":
         unified_space_concept = res_data.get('unified_space_concept', 'Whimsical Void')
         scenes = res_data.get('scenes', [])
         
-        # 💡 [방어 코드 4] 만약 scenes가 리스트가 아니라 문자열이나 다른 형태로 깨져 들어왔다면 보정
         if isinstance(scenes, str):
             try:
                 scenes = json.loads(scenes)
@@ -198,8 +202,6 @@ if __name__ == "__main__":
         else:
             print(f"🚀 총 {len(scenes)}개의 '단일 컨셉 초광각 고정형 드림코어' 시퀀스 루프를 안전하게 개시합니다.")
             for i, scene in enumerate(scenes):
-                
-                # 💡 [방어 코드 5] 루프 내부에서 개별 요소가 딕셔너리가 아닌 경우 대참사 방지
                 if not isinstance(scene, dict):
                     print(f"⚠️ {i+1}번째 컷 데이터가 문자열 등 부적절한 타입으로 파싱되어 스킵합니다.")
                     continue
