@@ -10,7 +10,7 @@ TG_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
 def get_active_free_models():
     """1. OpenRouter에서 무료 모델을 가져와 최신/고성능 순으로 정렬합니다."""
-    url = "https://openrouter.ai/api/v1/models"
+    url = "[https://openrouter.ai/api/v1/models](https://openrouter.ai/api/v1/models)"
     try:
         response = requests.get(url, timeout=10)
         if response.status_code == 200:
@@ -44,18 +44,17 @@ def get_active_free_models():
     return ["openrouter/free"]
 
 def get_liminal_prompts():
-    """2. 5컷 연동, 포근한 드림코어 공간 및 300자 내외 요약 규칙이 주입된 프롬프트 빌더"""
+    """2. 드림코어 프롬프트를 생성하고, 반환된 텍스트를 안전하게 디코딩합니다."""
     free_models = get_active_free_models()
     
-    url = "https://openrouter.ai/api/v1/chat/completions"
+    url = "[https://openrouter.ai/api/v1/chat/completions](https://openrouter.ai/api/v1/chat/completions)"
     headers = {
         "Authorization": f"Bearer {OPENROUTER_KEY}",
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://github.com",
-        "X-Title": "Whimsical Dreamcore Director"
+        "HTTP-Referer": "[https://github.com](https://github.com)",
+        "X-Title": "Robust Dreamcore Director"
     }
     
-    # 💡 [핵심 연출 패치] 5컷 제한, 단일 컨셉 공간, 동심/포근한 무드, 컷당 300자 내외 명시
     system_msg = (
         "You are an expert cinematic director specializing in web-authenticated 'Dreamcore' and 'Liminal Space' aesthetics.\n"
         "Your task is to direct a single, visually continuous 5-cut narrative sequence. Each cut is exactly 7 to 8 seconds long.\n\n"
@@ -97,12 +96,24 @@ def get_liminal_prompts():
             if response.status_code == 200:
                 res_json = response.json()
                 if 'choices' in res_json:
-                    raw_content = res_json['choices'][0]['message']['content']
-                    print(f"✅ [성공] {model_id} 모델이 포근한 5컷 드림코어 구성을 완료했습니다.")
-                    return json.loads(raw_content)
+                    raw_content = res_json['choices'][0]['message']['content'].strip()
+                    
+                    # 💡 [방어 코드 1] 마크다운 잔재나 특수문자 정제
+                    if raw_content.startswith("```"):
+                        raw_content = raw_content.replace("```json", "").replace("```", "").strip()
+                    
+                    parsed_dict = json.loads(raw_content)
+                    
+                    # 💡 [방어 코드 2] 통째로 문자열화된 이중 인코딩 적발 시 재파싱
+                    if isinstance(parsed_dict, str):
+                        parsed_dict = json.loads(parsed_dict)
+                        
+                    if isinstance(parsed_dict, dict) and 'scenes' in parsed_dict:
+                        print(f"✅ [성공] {model_id} 모델 데이터를 안정적으로 로드했습니다.")
+                        return parsed_dict
             print(f"⚠️ [우회] {model_id} 에러 발생 (코드 {response.status_code}). 차선책으로 이동.")
         except Exception as e:
-            print(f"⚠️ {model_id} 예외 발생: {e}. 차선책으로 이동.")
+            print(f"⚠️ {model_id} 예외 파싱 오류 발생: {e}. 차선책으로 이동.")
         time.sleep(1)
     return {}
 
@@ -165,18 +176,41 @@ def send_to_telegram(unified_space_concept, series_title, title, desc, img_path)
 if __name__ == "__main__":
     try:
         res_data = get_liminal_prompts()
-        scenes = res_data.get('scenes', [])
+        
+        # 💡 [방어 코드 3] res_data가 올바른 딕셔너리 구조인지 철저히 검증
+        if not isinstance(res_data, dict):
+            print("⚠️ 최상위 데이터가 딕셔너리 구조가 아닙니다. 기본값으로 강제 리셋합니다.")
+            res_data = {}
+            
         series_title = res_data.get('series_title', 'A Peaceful Echo')
         unified_space_concept = res_data.get('unified_space_concept', 'Whimsical Void')
+        scenes = res_data.get('scenes', [])
         
-        if not scenes:
-            print("❌ 모든 무료 모델 리스트를 순회했으나 데이터 확보에 실패했습니다.")
+        # 💡 [방어 코드 4] 만약 scenes가 리스트가 아니라 문자열이나 다른 형태로 깨져 들어왔다면 보정
+        if isinstance(scenes, str):
+            try:
+                scenes = json.loads(scenes)
+            except:
+                scenes = []
+                
+        if not isinstance(scenes, list) or not scenes:
+            print("❌ 예외 처리 필터링 결과, 유효한 5컷의 리스트 시퀀스를 파싱해내지 못했습니다. 스크립트를 재실행해 주세요.")
         else:
-            print(f"🚀 총 {len(scenes)}개의 '단일 컨셉 초광각 고정형 드림코어' 시퀀스 생성을 시작합니다.")
+            print(f"🚀 총 {len(scenes)}개의 '단일 컨셉 초광각 고정형 드림코어' 시퀀스 루프를 안전하게 개시합니다.")
             for i, scene in enumerate(scenes):
-                img_file = generate_image(scene['video_prompt'], i)
-                send_to_telegram(unified_space_concept, series_title, scene['title'], scene['description'], img_file)
-                time.sleep(12) # 429 API 보호 쿨다운
+                
+                # 💡 [방어 코드 5] 루프 내부에서 개별 요소가 딕셔너리가 아닌 경우 대참사 방지
+                if not isinstance(scene, dict):
+                    print(f"⚠️ {i+1}번째 컷 데이터가 문자열 등 부적절한 타입으로 파싱되어 스킵합니다.")
+                    continue
+                
+                title = scene.get('title', f"Cut {i+1}: Whimsical Zone")
+                description = scene.get('description', "No descriptions generated.")
+                video_prompt = scene.get('video_prompt', "A static empty pastel playground, dreamcore.")
+                
+                img_file = generate_image(video_prompt, i)
+                send_to_telegram(unified_space_concept, series_title, title, description, img_file)
+                time.sleep(12)
             print("🎉 5컷 마스터 디렉터 에이전트 미션 완수!")
     except Exception as e:
-        print(f"💥 스크립트 실행 중 치명적 에러 발생: {e}")
+        print(f"💥 구조적 우회 처리 도중 예기치 못한 에러 발생: {e}")
