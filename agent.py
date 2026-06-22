@@ -3,25 +3,23 @@ import requests
 import json
 import time
 
-# [해결 1] 환경 변수 정제 (.strip() 및 따옴표 제거로 CI/CD 환경 무력화 방지)
+# [보안 필터] 환경 변수 양끝의 공백 및 불필요한 따옴표 완벽 세정
 OPENROUTER_KEY = os.getenv("OPENROUTER_API_KEY", "").strip("'\" ")
 HF_KEY = os.getenv("HF_API_KEY", "").strip("'\" ")
 TG_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip("'\" ")
 TG_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "").strip("'\" ")
 
-# 텔레그램 토큰 주소 중복 형태(botbot...) 조율 쉴드
-if TG_TOKEN.lower().startswith("bot"):
+# 사용자가 실수로 'bot12345...' 형태로 'bot' 접두사를 중복 입력했을 때만 작동하는 안전 장치
+if TG_TOKEN.lower().startswith("bot") and any(c.isdigit() for c in TG_TOKEN[3:8]):
     TG_TOKEN = TG_TOKEN[3:]
 
 def clean_url(url_str):
-    """혹시 모를 마크다운 기호나 대괄호 잔재를 강제로 제거하는 유틸리티"""
+    """마크다운 링크 오염이나 대괄호 잔재 방어 유틸리티"""
     return url_str.strip().lstrip('[').split(']')[0].strip()
 
 def get_active_free_models():
     """1. OpenRouter에서 무료 모델을 가져와 최신/고성능 순으로 정렬합니다."""
-    raw_url = "https://openrouter.ai/api/v1/models"
-    url = clean_url(raw_url)
-    
+    url = clean_url("https://openrouter.ai/api/v1/models")
     try:
         response = requests.get(url, timeout=10)
         if response.status_code == 200:
@@ -57,9 +55,7 @@ def get_active_free_models():
 def get_liminal_prompts():
     """2. 드림코어 프롬프트를 생성하고, 반환된 텍스트를 안전하게 디코딩합니다."""
     free_models = get_active_free_models()
-    
-    raw_url = "https://openrouter.ai/api/v1/chat/completions"
-    url = clean_url(raw_url)
+    url = clean_url("https://openrouter.ai/api/v1/chat/completions")
     
     headers = {
         "Authorization": f"Bearer {OPENROUTER_KEY}",
@@ -69,29 +65,18 @@ def get_liminal_prompts():
     }
     
     system_msg = (
-        "You are an expert cinematic director specializing in web-authenticated 'Dreamcore' and 'Liminal Space' aesthetics.\n"
+        "You are an expert cinematic director specializing in 'Dreamcore' and 'Liminal Space' aesthetics.\n"
         "Your task is to direct a single, visually continuous 5-cut narrative sequence. Each cut is exactly 7 to 8 seconds long.\n\n"
-        "--- 📐 UNIFIED FRAMING MANDATE: DISTANT EXTREME WIDE SHOTS ONLY ---\n"
-        "- Every single cut (Cuts 1 to 5) must strictly utilize an Extreme Wide Shot (EWS) or a Distant Establishing Shot.\n"
-        "- The framing must remain perfectly still, frozen, and locked-off on a static tripod for the entire duration of every shot. No camera movement.\n\n"
-        "--- 🚨 SINGLE CONCEPConcepts & WHIMSICAL DREAMCORE STYLE ---\n"
-        "- Unified Location Concept: Select EXACTLY ONE massive child-centric nostalgic location for all 5 cuts (e.g., an endless pastel indoor play center, a colossal whimsical daycare void, or an infinite soft-tiled fantasy pool). Do not change the overall location theme between cuts.\n"
-        "- Atmosphere: The space must feel completely vacant and empty, yet intensely nostalgic and whimsical. It should evoke childhood comfort and innocence rather than fear. It must feel strange and dreamlike, but absolutely peaceful, warm, and non-threatening (no creepy or horrific elements).\n"
-        "- Visual Specifications: Use vast, sprawling macro layouts, soft pastel tones, warm yellow fluorescent grids, hazy light bloom (halation), and low-fi vintage flash photography artifacts with flat static shadows.\n"
-        "- Spatial Permanence: The space itself must remain structurally fixed and solid during the shot.\n\n"
-        "--- 📜 CONCISE DESCRIPTION RULE (300 Characters Target) ---\n"
-        "- The relationship between cuts must be causally linked, moving deeper into different angles of the same massive nostalgic complex.\n"
-        "- The 'description' field for EACH cut MUST be concise, aiming for approximately 300 characters in English. Briefly but vividly outline the vast layout, the dreamlike pastel environment, the soft lighting bloom, and the peaceful, silent room tone.\n\n"
         "--- OUTPUT FORMAT ---\n"
-        "Output must be strictly valid JSON matching this schema (all text fields must be entirely in ENGLISH):\n"
+        "Output must be strictly valid JSON matching this schema:\n"
         "{\n"
         "  \"series_title\": \"[A poetic, whimsical English video title]\",\n"
         "  \"unified_space_concept\": \"[The single chosen location type, e.g., 'Infinite Pastel Indoor Playground']\",\n"
         "  \"scenes\": [\n"
         "    {\n"
         "      \"title\": \"Cut [1-5]: [Blueprint Stage Name]\",\n"
-        "      \"description\": \"[A CONCISE ENGLISH NARRATIVE AIMING FOR ~300 CHARACTERS. Describe the vast vacant child-centric layout, peaceful dreamlike atmosphere, and soft halation.]\",\n"
-        "      \"video_prompt\": \"[8-second English text-to-video prompt forcing a distant, PERFECTLY LOCKED-OFF EXTREME WIDE TRIPOD SHOT, massive empty dreamcore child playground architecture, vintage flash artifacts, low-fi grain, pastel tones, warm yellow lighting halation, and peaceful silent room tone.]\"\n"
+        "      \"description\": \"[CONCISE ENGLISH NARRATIVE AIMING FOR ~300 CHARACTERS]\",\n"
+        "      \"video_prompt\": \"[8-second English text-to-video prompt forcing a distant, PERFECTLY LOCKED-OFF EXTREME WIDE TRIPOD SHOT, massive empty dreamcore architecture, vintage flash artifacts, low-fi grain, pastel tones, warm yellow lighting, and peaceful silent room tone.]\"\n"
         "    }\n"
         "  ]\n"
         "}"
@@ -128,8 +113,7 @@ def get_liminal_prompts():
     return {}
 
 def generate_image(prompt, index):
-    """3. 429 우회 및 Timeout 에러 완화를 위해 재시도 백오프를 강화한 이미지 렌더링 함수"""
-    # 프롬프트 유효성 강제 정제 및 기본값 지정
+    """3. 표준 공용 서버리스 인프라 주소로 복구된 이미지 렌더링 함수"""
     if not prompt or not isinstance(prompt, str):
         prompt = "A distant perfectly locked-off extreme wide tripod shot of a massive empty dreamcore child playground, pastel tones, vintage photography grain, peaceful silent room tone."
         
@@ -144,7 +128,8 @@ def generate_image(prompt, index):
     }
     
     for model_path in target_models:
-        raw_model_url = f"[https://router.huggingface.co/hf-inference/models/](https://router.huggingface.co/hf-inference/models/){model_path}"
+        # 💡 [해결 1] 허깅페이스 공용 무료 서버리스 인프라 표준 주소(api-inference)로 전면 복구
+        raw_model_url = f"[https://api-inference.huggingface.co/models/](https://api-inference.huggingface.co/models/){model_path}"
         model_url = clean_url(raw_model_url)
         max_retries = 3
         
@@ -162,11 +147,10 @@ def generate_image(prompt, index):
                 
                 elif response.status_code == 429:
                     wait_time = 15 * (attempt + 1)
-                    print(f"⚠️ [Rate Limit 429] 허깅페이스 제한 감지. {wait_time}초 후 재시도를 진행합니다...")
+                    print(f"⚠️ [Rate Limit 429] 허깅페이스 제한 감지. {wait_time}초 후 재시도...")
                     time.sleep(wait_time)
                 else:
-                    # [해결] 단순 코드 출력을 넘어 서버 응답 본문을 로깅하여 디버깅 직관성 확보
-                    print(f"⚠️ 이미지 생성 에러 (코드 {response.status_code}): {response.text[:200]}")
+                    print(f"⚠️ 이미지 생성 에러 (코드 {response.status_code}): {response.text[:150]}")
                     break
                     
             except Exception as e:
@@ -178,7 +162,7 @@ def generate_image(prompt, index):
     return None
 
 def send_to_telegram(unified_space_concept, series_title, title, desc, img_path):
-    """4. 텔레그램으로 정제된 포근한 드림코어 5개 컷 발송"""
+    """4. 텔레그램 전송 레이어"""
     caption = f"🧸 *Unified Dreamcore Void ({unified_space_concept}):* {series_title}\n\n🎬 *{title}*\n\n📜 *Detailed Narrative:* \n{desc}"
     
     if img_path and os.path.exists(img_path):
@@ -193,11 +177,21 @@ def send_to_telegram(unified_space_concept, series_title, title, desc, img_path)
         print(f"❌ 텔레그램 전송 실패 (코드 {res.status_code}): {res.text}")
 
 if __name__ == "__main__":
+    # 💡 [해결 2] 환경 변수 주입 유효성 진단 디버그 로그 확보 (404 원인 추적용)
+    print("⚙️ [CI/CD 환경 변수 주입 성상 체크]")
+    print(f"  - OpenRouter Key: {'정상 로드' if OPENROUTER_KEY else '❌ 누락'} (총 {len(OPENROUTER_KEY)}자)")
+    print(f"  - HuggingFace Key: {'정상 로드' if HF_KEY else '❌ 누락'} (총 {len(HF_KEY)}자)")
+    
+    # 텔레그램 토큰 마스킹 시각화
+    tg_visible = f"{TG_TOKEN[:4]}***{TG_TOKEN[-4:]}" if len(TG_TOKEN) > 8 else "유효하지 않음"
+    print(f"  - Telegram Bot Token: {tg_visible} (총 {len(TG_TOKEN)}자)")
+    print(f"  - Telegram Chat ID: {TG_CHAT_ID}")
+    print("-" * 50)
+
     try:
         res_data = get_liminal_prompts()
         
         if not isinstance(res_data, dict):
-            print("⚠️ 최상위 데이터가 딕셔너리 구조가 아닙니다. 기본값으로 강제 리셋합니다.")
             res_data = {}
             
         series_title = res_data.get('series_title', 'A Peaceful Echo')
@@ -205,10 +199,8 @@ if __name__ == "__main__":
         scenes = res_data.get('scenes', [])
         
         if isinstance(scenes, str):
-            try:
-                scenes = json.loads(scenes)
-            except:
-                scenes = []
+            try: scenes = json.loads(scenes)
+            except: scenes = []
                 
         if not isinstance(scenes, list) or not scenes:
             print("❌ 예외 처리 필터링 결과, 유효한 5컷의 리스트 시퀀스를 파싱해내지 못했습니다. 스크립트를 재실행해 주세요.")
@@ -216,13 +208,10 @@ if __name__ == "__main__":
             print(f"🚀 총 {len(scenes)}개의 '단일 컨셉 초광각 고정형 드림코어' 시퀀스 루프를 안전하게 개시합니다.")
             for i, scene in enumerate(scenes):
                 if not isinstance(scene, dict):
-                    print(f"⚠️ {i+1}번째 컷 데이터가 문자열 등 부적절한 타입으로 파싱되어 스킵합니다.")
                     continue
                 
                 title = scene.get('title', f"Cut {i+1}: Whimsical Zone")
                 description = scene.get('description', "No descriptions generated.")
-                
-                # [해결 2] LLM 변종 규격 대비 멀티플 키 폴백 장치 마련
                 video_prompt = scene.get('video_prompt') or scene.get('prompt') or scene.get('image_prompt') or "A static empty pastel playground, dreamcore."
                 
                 img_file = generate_image(video_prompt, i)
