@@ -3,10 +3,15 @@ import requests
 import json
 import time
 
-OPENROUTER_KEY = os.getenv("OPENROUTER_API_KEY")
-HF_KEY = os.getenv("HF_API_KEY")
-TG_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-TG_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+# [해결 1] 환경 변수 정제 (.strip() 및 따옴표 제거로 CI/CD 환경 무력화 방지)
+OPENROUTER_KEY = os.getenv("OPENROUTER_API_KEY", "").strip("'\" ")
+HF_KEY = os.getenv("HF_API_KEY", "").strip("'\" ")
+TG_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip("'\" ")
+TG_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "").strip("'\" ")
+
+# 텔레그램 토큰 주소 중복 형태(botbot...) 조율 쉴드
+if TG_TOKEN.lower().startswith("bot"):
+    TG_TOKEN = TG_TOKEN[3:]
 
 def clean_url(url_str):
     """혹시 모를 마크다운 기호나 대괄호 잔재를 강제로 제거하는 유틸리티"""
@@ -69,7 +74,7 @@ def get_liminal_prompts():
         "--- 📐 UNIFIED FRAMING MANDATE: DISTANT EXTREME WIDE SHOTS ONLY ---\n"
         "- Every single cut (Cuts 1 to 5) must strictly utilize an Extreme Wide Shot (EWS) or a Distant Establishing Shot.\n"
         "- The framing must remain perfectly still, frozen, and locked-off on a static tripod for the entire duration of every shot. No camera movement.\n\n"
-        "--- 🚨 SINGLE CONCEPTS & WHIMSICAL DREAMCORE STYLE ---\n"
+        "--- 🚨 SINGLE CONCEPConcepts & WHIMSICAL DREAMCORE STYLE ---\n"
         "- Unified Location Concept: Select EXACTLY ONE massive child-centric nostalgic location for all 5 cuts (e.g., an endless pastel indoor play center, a colossal whimsical daycare void, or an infinite soft-tiled fantasy pool). Do not change the overall location theme between cuts.\n"
         "- Atmosphere: The space must feel completely vacant and empty, yet intensely nostalgic and whimsical. It should evoke childhood comfort and innocence rather than fear. It must feel strange and dreamlike, but absolutely peaceful, warm, and non-threatening (no creepy or horrific elements).\n"
         "- Visual Specifications: Use vast, sprawling macro layouts, soft pastel tones, warm yellow fluorescent grids, hazy light bloom (halation), and low-fi vintage flash photography artifacts with flat static shadows.\n"
@@ -124,12 +129,19 @@ def get_liminal_prompts():
 
 def generate_image(prompt, index):
     """3. 429 우회 및 Timeout 에러 완화를 위해 재시도 백오프를 강화한 이미지 렌더링 함수"""
+    # 프롬프트 유효성 강제 정제 및 기본값 지정
+    if not prompt or not isinstance(prompt, str):
+        prompt = "A distant perfectly locked-off extreme wide tripod shot of a massive empty dreamcore child playground, pastel tones, vintage photography grain, peaceful silent room tone."
+        
     target_models = [
         "black-forest-labs/FLUX.1-schnell",
         "stabilityai/stable-diffusion-xl-base-1.0",
         "SG161222/RealVisXL_V4.0"
     ]
-    headers = {"Authorization": f"Bearer {HF_KEY}"}
+    headers = {
+        "Authorization": f"Bearer {HF_KEY}",
+        "Content-Type": "application/json"
+    }
     
     for model_path in target_models:
         raw_model_url = f"[https://router.huggingface.co/hf-inference/models/](https://router.huggingface.co/hf-inference/models/){model_path}"
@@ -139,7 +151,7 @@ def generate_image(prompt, index):
         for attempt in range(max_retries):
             try:
                 print(f"🎨 [이미지 생성 시도] 모델: {model_path} ({attempt + 1}/{max_retries})")
-                response = requests.post(model_url, headers=headers, json={"inputs": prompt}, timeout=90)
+                response = requests.post(model_url, headers=headers, json={"inputs": prompt.strip()}, timeout=90)
                 
                 if response.status_code == 200:
                     file_path = f"liminal_{index}.png"
@@ -150,10 +162,11 @@ def generate_image(prompt, index):
                 
                 elif response.status_code == 429:
                     wait_time = 15 * (attempt + 1)
-                    print(f"⚠️ [Rate Limit 429] 허깅페이스 제한 감지. {wait_time}초 후 공격적인 재시도를 진행합니다...")
+                    print(f"⚠️ [Rate Limit 429] 허깅페이스 제한 감지. {wait_time}초 후 재시도를 진행합니다...")
                     time.sleep(wait_time)
                 else:
-                    print(f"⚠️ 이미지 생성 에러 (코드 {response.status_code}). 차선책 처리 진행.")
+                    # [해결] 단순 코드 출력을 넘어 서버 응답 본문을 로깅하여 디버깅 직관성 확보
+                    print(f"⚠️ 이미지 생성 에러 (코드 {response.status_code}): {response.text[:200]}")
                     break
                     
             except Exception as e:
@@ -208,7 +221,9 @@ if __name__ == "__main__":
                 
                 title = scene.get('title', f"Cut {i+1}: Whimsical Zone")
                 description = scene.get('description', "No descriptions generated.")
-                video_prompt = scene.get('video_prompt', "A static empty pastel playground, dreamcore.")
+                
+                # [해결 2] LLM 변종 규격 대비 멀티플 키 폴백 장치 마련
+                video_prompt = scene.get('video_prompt') or scene.get('prompt') or scene.get('image_prompt') or "A static empty pastel playground, dreamcore."
                 
                 img_file = generate_image(video_prompt, i)
                 send_to_telegram(unified_space_concept, series_title, title, description, img_file)
