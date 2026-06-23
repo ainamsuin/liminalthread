@@ -68,16 +68,28 @@ def get_liminal_prompts():
     system_msg = (
         "You are an expert cinematic director specializing in 'Dreamcore' and 'Liminal Space' aesthetics.\n"
         "Your task is to direct a single, visually continuous 5-cut narrative sequence. Each cut is exactly 7 to 8 seconds long.\n\n"
+
+        "--- MOOD & TONE ---\n"
+        "The overall mood MUST be WARM, PEACEFUL, and NON-THREATENING.\n"
+        "Evoke childhood comfort and innocence — like a quiet, sunlit space that feels safe and gently nostalgic.\n"
+        "DO NOT use horror, dread, unsettling shadows, or any uncanny valley elements. "
+        "The space is simply empty and still, not scary.\n\n"
+
+        "--- SPATIAL UNITY RULE ---\n"
+        "CRITICAL: First, decide on ONE single physical location for 'unified_space_concept' (e.g. 'Infinite Pastel Indoor Playground').\n"
+        "ALL 5 cuts MUST remain inside that exact same location. "
+        "Each cut shows a DIFFERENT ZONE or ANGLE within that one space — do NOT change to a new location between cuts.\n\n"
+
         "--- OUTPUT FORMAT ---\n"
         "Output must be strictly valid JSON matching this schema:\n"
         "{\n"
         "  \"series_title\": \"[Poetic Video Title]\",\n"
-        "  \"unified_space_concept\": \"[Location Type]\",\n"
+        "  \"unified_space_concept\": \"[Single Location Type, e.g. Infinite Pastel Indoor Playground]\",\n"
         "  \"scenes\": [\n"
         "    {\n"
-        "      \"title\": \"Cut [1-5]: [Stage Name]\",\n"
-        "      \"description\": \"[CONCISE NARRATIVE]\",\n"
-        "      \"video_prompt\": \"[8-second English tripod shot prompt, pastel tones, low-fi grain]\"\n"
+        "      \"title\": \"Cut [1-5]: [Zone Name]\",\n"
+        "      \"description\": \"[Max 300 characters. Concise scene narrative only. Warm and peaceful tone.]\",\n"
+        "      \"video_prompt\": \"[8-second English tripod shot prompt, pastel tones, low-fi grain, warm soft light]\"\n"
         "    }\n"
         "  ]\n"
         "}"
@@ -123,8 +135,8 @@ def generate_image(prompt, index):
     
     # 💡 [해결 1] 러너 환경별 DNS NameResolutionError 원천 차단을 위한 대체 도메인 풀 구성
     hf_dns_hosts = [
-        "[https://api-inference.huggingface.co](https://api-inference.huggingface.co)",
-        "[https://api.huggingface.co](https://api.huggingface.co)"
+        "https://api-inference.huggingface.co",
+        "https://api.huggingface.co"
     ]
     
     headers = {
@@ -169,11 +181,11 @@ def send_to_telegram(unified_space_concept, series_title, title, desc, img_path)
     
     # 💡 [해결 2] 완전 정제된 토큰을 사용하여 결함 없는 깔끔한 URL 라우팅 패스 확보
     if img_path and os.path.exists(img_path):
-        url = clean_url(f"[https://api.telegram.org/bot](https://api.telegram.org/bot){TG_TOKEN}/sendPhoto")
+        url = f"https://api.telegram.org/bot{TG_TOKEN}/sendPhoto"
         with open(img_path, "rb") as photo:
             res = requests.post(url, data={"chat_id": TG_CHAT_ID, "caption": caption, "parse_mode": "Markdown"}, files={"photo": photo})
     else:
-        url = clean_url(f"[https://api.telegram.org/bot](https://api.telegram.org/bot){TG_TOKEN}/sendMessage")
+        url = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
         res = requests.post(url, data={"chat_id": TG_CHAT_ID, "text": f"{caption}\n\n⚠️ (Image Preview FAILED)", "parse_mode": "Markdown"})
     
     if res.status_code != 200:
