@@ -119,7 +119,8 @@ UNREALITY_STAGES = {
 # ═══════════════════════════════════════════════════════════════════
 
 def get_active_free_models():
-    """OpenRouter 무료 모델 목록 조회 및 성능순 정렬."""
+    """OpenRouter 무료 모델 목록 조회 및 성능순 정렬.
+    코딩 전용 모델(coder, coding)은 크리에이티브 JSON 생성에 부적합하여 하향."""
     url = "https://openrouter.ai/api/v1/models"
     try:
         r = requests.get(url, timeout=10)
@@ -128,28 +129,40 @@ def get_active_free_models():
 
             def score(m):
                 mid, ctx = m['id'].lower(), m.get('context_length', 0)
+                # 코딩 전용 모델 제외 (rate limit 타이트 + 크리에이티브 부적합)
+                if any(x in mid for x in ('coder', 'coding', 'code-')):
+                    return (-1, 0)
                 s = 0
-                if 'qwen3' in mid or 'qwen-3' in mid:           s = 60
-                elif 'qwen-2.5' in mid:                          s = 55
-                elif 'deepseek' in mid:                          s = 50
-                elif 'llama-3.3' in mid:                         s = 45
-                elif 'llama-3.1' in mid or 'llama-3.2' in mid:  s = 40
-                elif 'gemma-3' in mid:                           s = 35
-                elif 'gemma-2' in mid:                           s = 30
-                elif 'phi-4' in mid:                             s = 25
+                if 'llama-3.3' in mid:                          s = 65
+                elif 'qwen-2.5-72b' in mid:                     s = 60
+                elif ('qwen3' in mid or 'qwen-3' in mid) and '72b' in mid: s = 58
+                elif 'qwen-2.5' in mid:                         s = 55
+                elif 'deepseek' in mid and 'coder' not in mid:  s = 50
+                elif 'llama-3.1' in mid:                        s = 45
+                elif 'gemma-3' in mid:                          s = 40
+                elif 'gemma-2' in mid:                          s = 35
+                elif 'qwen3' in mid or 'qwen-3' in mid:        s = 30
+                elif 'phi-4' in mid:                            s = 25
+                elif 'llama-3.2' in mid:                        s = 20
                 return (s, ctx)
 
             free.sort(key=score, reverse=True)
-            ids = [m['id'] for m in free]
-            print(f"🎯 1순위 모델: {ids[0] if ids else 'None'} | 총 {len(ids)}개")
+            # score < 0 (코딩 전용) 제거
+            ids = [m['id'] for m in free if score(m)[0] >= 0]
+            print(f"🎯 1순위 모델: {ids[0] if ids else 'None'} | 총 {len(ids)}개 (코딩 전용 제외)")
             return ids
     except Exception as e:
         print(f"⚠️ 모델 목록 오류: {e}")
     return ["meta-llama/llama-3.3-70b-instruct:free"]
 
 
-def call_openrouter(messages, free_models, require_json=True, max_tokens=2500, max_models=5):
-    """공통 OpenRouter 호출. 실패 시 상위 max_models 내 자동 폴백."""
+def call_openrouter(messages, free_models, require_json=True, max_tokens=2500):
+    """
+    공통 OpenRouter 호출. 429 시 동작:
+      1. 같은 모델에서 Retry-After(또는 60초) 대기 후 1회 재시도
+      2. 재시도도 429면 다음 모델로 이동
+      3. 전체 모델 소진 후에도 실패 시 → 90초 대기 후 상위 3개 모델로 최종 재시도
+    """
     url = "https://openrouter.ai/api/v1/chat/completions"
     headers = {
         "Authorization": f"Bearer {OPENROUTER_KEY}",
@@ -157,24 +170,68 @@ def call_openrouter(messages, free_models, require_json=True, max_tokens=2500, m
         "HTTP-Referer": "https://github.com",
         "X-Title": "Liminal Reality-Break Director"
     }
-    for mid in free_models[:max_models]:
+
+    def _try_model(mid):
+        """단일 모델 호출. 성공 시 content 문자열, 429 시 'RATE_LIMIT', 기타 실패 시 None 반환."""
         body = {"model": mid, "messages": messages, "max_tokens": max_tokens}
         if require_json:
             body["response_format"] = {"type": "json_object"}
         try:
-            print(f"  🔄 [{mid}]")
             r = requests.post(url, headers=headers, json=body, timeout=60)
             if r.status_code == 200 and 'choices' in r.json():
                 content = r.json()['choices'][0]['message']['content'].strip()
-                # markdown 코드블록 방어
                 if content.startswith("```"):
                     content = content.replace("```json", "").replace("```", "").strip()
-                print(f"  ✅ 응답 ({len(content)}자)")
                 return content
-            print(f"  ⚠️ {r.status_code} → 다음 모델")
+            if r.status_code == 429:
+                return 'RATE_LIMIT', r.headers.get('Retry-After')
+            print(f"  ⚠️ {r.status_code} [{mid}]")
+            return None
         except Exception as e:
-            print(f"  ⚠️ 예외: {e}")
-        time.sleep(1)
+            print(f"  ⚠️ 예외 [{mid}]: {e}")
+            return None
+
+    # 1차: 전체 모델 순환 (429 시 모델당 1회 대기 후 재시도)
+    for mid in free_models:
+        print(f"  🔄 [{mid}]")
+        result = _try_model(mid)
+
+        if isinstance(result, tuple) and result[0] == 'RATE_LIMIT':
+            # 429: Retry-After 헤더 또는 기본 60초 대기 후 같은 모델 재시도
+            try:
+                wait = min(int(result[1]), 90) if result[1] else 60
+            except (ValueError, TypeError):
+                wait = 60
+            print(f"  ⚠️ 429 [{mid}] → {wait}초 대기 후 재시도...")
+            time.sleep(wait)
+            result = _try_model(mid)
+            if isinstance(result, tuple):
+                print(f"  ⚠️ 재시도도 429 [{mid}] → 다음 모델")
+                time.sleep(5)
+                continue
+            if isinstance(result, str):
+                print(f"  ✅ 재시도 성공 ({len(result)}자)")
+                return result
+            continue  # None이면 다음 모델
+
+        if isinstance(result, str):
+            print(f"  ✅ 응답 ({len(result)}자)")
+            return result
+
+        time.sleep(3)  # 비-429 실패 후 다음 모델 전 잠깐 대기
+
+    # 2차: 전체 순환 실패 → 90초 대기 후 상위 3개 모델로 최종 재시도
+    print("  ⏳ 전체 모델 소진. 90초 대기 후 최종 재시도...")
+    time.sleep(90)
+    for mid in free_models[:3]:
+        print(f"  🔄 [최종 재시도] [{mid}]")
+        result = _try_model(mid)
+        if isinstance(result, str):
+            print(f"  ✅ 최종 재시도 성공 ({len(result)}자)")
+            return result
+        time.sleep(10)
+
+    print("  ❌ 모든 재시도 소진")
     return None
 
 
