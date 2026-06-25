@@ -559,33 +559,50 @@ def generate_image(prompt, index, aesthetic_type='liminal_space', color_palette=
 # ═══════════════════════════════════════════════════════════════════
 
 def send_to_telegram(story_meta, title, desc, img_path):
-    caption = (
-        f"🌀 *{story_meta['series_title']}*\n"
-        f"📍 {story_meta['culture']} — {story_meta['location']}\n"
-        f"💭 {story_meta['premise']}\n\n"
-        f"🎬 *{title}*\n\n"
+    """
+    사진과 전체 설명을 분리 전송하여 1024자 caption 제한 완전 해제.
+      1) 이미지 -> caption은 제목만 (짧게 유지)
+      2) 전체 설명 텍스트 -> sendMessage (최대 4096자)
+    이미지가 없을 경우 전체 내용을 단일 텍스트 메시지로 전송.
+    """
+    short_caption = (
+        f"\U0001f300 *{story_meta['series_title']}*\n"
+        f"\U0001f4cd {story_meta['culture']} \u2014 {story_meta['location']}\n"
+        f"\U0001f3ac *{title}*"
+    )
+
+    full_text = (
+        f"\U0001f4ad {story_meta['premise']}\n\n"
         f"{desc}"
-    )[:1024]
+    )
+
+    def _send(url, **kwargs):
+        r = requests.post(url, **kwargs)
+        if r.status_code != 200:
+            print(f"  \u274c 전송 실패 ({r.status_code}): {r.text}")
+            return False
+        return True
 
     if img_path and os.path.exists(img_path):
-        url = f"https://api.telegram.org/bot{TG_TOKEN}/sendPhoto"
         with open(img_path, "rb") as photo:
-            r = requests.post(
-                url,
-                data={"chat_id": TG_CHAT_ID, "caption": caption, "parse_mode": "Markdown"},
+            ok = _send(
+                f"https://api.telegram.org/bot{TG_TOKEN}/sendPhoto",
+                data={"chat_id": TG_CHAT_ID, "caption": short_caption, "parse_mode": "Markdown"},
                 files={"photo": photo}
             )
+        if ok:
+            _send(
+                f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage",
+                data={"chat_id": TG_CHAT_ID, "text": full_text, "parse_mode": "Markdown"}
+            )
     else:
-        url = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
-        r = requests.post(
-            url,
-            data={"chat_id": TG_CHAT_ID, "text": caption + "\n\n⚠️ 이미지 생성 실패", "parse_mode": "Markdown"}
+        full_fallback = f"{short_caption}\n\n{full_text}\n\n\u26a0\ufe0f 이미지 생성 실패"
+        _send(
+            f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage",
+            data={"chat_id": TG_CHAT_ID, "text": full_fallback, "parse_mode": "Markdown"}
         )
 
-    if r.status_code != 200:
-        print(f"  ❌ 전송 실패 ({r.status_code}): {r.text}")
-    else:
-        print(f"  ✅ 텔레그램 전송 완료")
+    print(f"  \u2705 텔레그램 전송 완료")
 
 
 # ═══════════════════════════════════════════════════════════════════
