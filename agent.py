@@ -76,7 +76,7 @@ NEGATIVE_PROMPT = (
     "illustration, painting, cartoon, anime, CGI render, harsh shadows"
 )
 
-# 현실→비현실 5단계 아크 정의 (FIX #NEW — 스토리 컨셉 핵심)
+# 현실→비현실 5단계 아크 정의
 UNREALITY_STAGES = {
     1: {
         "name": "GROUNDED",
@@ -120,7 +120,7 @@ UNREALITY_STAGES = {
 
 def get_active_free_models():
     """OpenRouter 무료 모델 목록 조회 및 성능순 정렬.
-    코딩 전용 모델(coder, coding)은 크리에이티브 JSON 생성에 부적합하여 하향."""
+    코딩 전용 모델(coder, coding) 및 JSON 구조 응답 불안정 모델(nemotron)은 제외."""
     url = "https://openrouter.ai/api/v1/models"
     try:
         r = requests.get(url, timeout=10)
@@ -129,8 +129,8 @@ def get_active_free_models():
 
             def score(m):
                 mid, ctx = m['id'].lower(), m.get('context_length', 0)
-                # 코딩 전용 모델 제외 (rate limit 타이트 + 크리에이티브 부적합)
-                if any(x in mid for x in ('coder', 'coding', 'code-')):
+                # FIX: 코딩 전용 + JSON 구조 응답 불안정 모델 제외
+                if any(x in mid for x in ('coder', 'coding', 'code-', 'nemotron')):
                     return (-1, 0)
                 s = 0
                 if 'llama-3.3' in mid:                          s = 65
@@ -147,9 +147,9 @@ def get_active_free_models():
                 return (s, ctx)
 
             free.sort(key=score, reverse=True)
-            # score < 0 (코딩 전용) 제거
+            # score < 0 (제외 대상) 필터링
             ids = [m['id'] for m in free if score(m)[0] >= 0]
-            print(f"🎯 1순위 모델: {ids[0] if ids else 'None'} | 총 {len(ids)}개 (코딩 전용 제외)")
+            print(f"🎯 1순위 모델: {ids[0] if ids else 'None'} | 총 {len(ids)}개 (제외 모델 필터링 완료)")
             return ids
     except Exception as e:
         print(f"⚠️ 모델 목록 오류: {e}")
@@ -182,9 +182,13 @@ def call_openrouter(messages, free_models, require_json=True, max_tokens=2500):
                 content = r.json()['choices'][0]['message']['content'].strip()
                 if content.startswith("```"):
                     content = content.replace("```json", "").replace("```", "").strip()
+                # FIX: 너무 짧은 응답 = 불완전 JSON → 무효 처리
+                if len(content) < 80:
+                    print(f"  ⚠️ 응답 너무 짧음 ({len(content)}자) [{mid}] — 다음 모델로")
+                    return None
                 return content
             if r.status_code == 429:
-                return 'RATE_LIMIT', r.headers.get('Retry-After')
+                return ('RATE_LIMIT', r.headers.get('Retry-After'))
             print(f"  ⚠️ {r.status_code} [{mid}]")
             return None
         except Exception as e:
@@ -239,10 +243,11 @@ def call_openrouter(messages, free_models, require_json=True, max_tokens=2500):
 # Phase 1 — 스토리 컨셉 + 5단계 현실/비현실 아크 생성
 # ═══════════════════════════════════════════════════════════════════
 
-def generate_story_concept(free_models):
+def generate_story_concept(free_models, max_retries=3):
     """
     단일 내러티브 컨셉과 5단계 현실→비현실 공간 아크를 생성.
     각 단계는 공간 연결(visible_next_zone) + 비현실 요소(unreality_element)를 가짐.
+    FIX: reality_arc 5단계 완전성 검증 + 실패 시 재시도 루프 추가.
     """
     stage_guide = "\n".join(
         f"  Stage {k} ({v['name']}): {v['guide']}"
@@ -327,28 +332,46 @@ Output ONLY valid JSON:
 }}"""
 
     print("\n📖 [Phase 1] 스토리 컨셉 + 현실/비현실 아크 생성 중...")
-    content = call_openrouter(
-        [{"role": "user", "content": prompt}],
-        free_models, require_json=True, max_tokens=3000
-    )
-    if not content:
-        print("❌ 스토리 컨셉 생성 실패")
-        return None
-    try:
-        sc = json.loads(content)
-        # aesthetic_type 정규화 (대소문자/오타 방어)
-        raw = sc.get('aesthetic_type', '').lower()
-        if 'dreamcore' in raw:   sc['aesthetic_type'] = 'dreamcore'
-        elif 'backroom' in raw:  sc['aesthetic_type'] = 'backrooms'
-        else:                    sc['aesthetic_type'] = 'liminal_space'
 
-        arc_len = len(sc.get('reality_arc', []))
-        print(f"✅ 컨셉: '{sc.get('series_title')}' | {sc['aesthetic_type']} | {arc_len}단계")
-        print(f"   내러티브: {sc.get('narrative_premise', '')[:120]}")
-        return sc
-    except json.JSONDecodeError as e:
-        print(f"❌ 스토리 컨셉 JSON 파싱 오류: {e}")
-        return None
+    # FIX: 최대 max_retries회 재시도, reality_arc 완전성(5단계) 검증
+    for attempt in range(1, max_retries + 1):
+        if attempt > 1:
+            print(f"  🔄 Phase 1 재시도 {attempt}/{max_retries}...")
+            time.sleep(20)
+
+        content = call_openrouter(
+            [{"role": "user", "content": prompt}],
+            free_models, require_json=True, max_tokens=3000
+        )
+
+        if not content:
+            print(f"  ⚠️ 응답 없음 (시도 {attempt}/{max_retries})")
+            continue
+
+        try:
+            sc = json.loads(content)
+
+            # FIX: reality_arc 5단계 완전성 검증
+            arc = sc.get('reality_arc', [])
+            if len(arc) < 5:
+                print(f"  ⚠️ reality_arc {len(arc)}단계 — 5단계 필요. 재시도.")
+                continue
+
+            # aesthetic_type 정규화 (대소문자/오타 방어)
+            raw = sc.get('aesthetic_type', '').lower()
+            if 'dreamcore' in raw:   sc['aesthetic_type'] = 'dreamcore'
+            elif 'backroom' in raw:  sc['aesthetic_type'] = 'backrooms'
+            else:                    sc['aesthetic_type'] = 'liminal_space'
+
+            print(f"✅ 컨셉: '{sc.get('series_title')}' | {sc['aesthetic_type']} | {len(arc)}단계")
+            print(f"   내러티브: {sc.get('narrative_premise', '')[:120]}")
+            return sc
+
+        except json.JSONDecodeError as e:
+            print(f"  ❌ JSON 파싱 오류 (시도 {attempt}/{max_retries}): {e}")
+
+    print("❌ 스토리 컨셉 생성 실패 — 최대 재시도 초과")
+    return None
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -360,11 +383,11 @@ def generate_cut(stage_data, prev_description, story_concept, free_models):
     스토리 컨셉 + 이전 컷 description을 참조하여 단일 컷 생성.
     unreality_element는 프레임 내 REQUIRED 시각 요소로 강제.
     """
-    stage_num   = stage_data.get('stage', 1)
-    stage_name  = stage_data.get('stage_name', 'GROUNDED')
-    zone_name   = stage_data.get('zone_name', '')
-    zone_desc   = stage_data.get('zone_description', '')
-    unreality   = stage_data.get('unreality_element', 'none')
+    stage_num    = stage_data.get('stage', 1)
+    stage_name   = stage_data.get('stage_name', 'GROUNDED')
+    zone_name    = stage_data.get('zone_name', '')
+    zone_desc    = stage_data.get('zone_description', '')
+    unreality    = stage_data.get('unreality_element', 'none')
     visible_next = stage_data.get('visible_next_zone', '')
 
     aesthetic_type  = story_concept.get('aesthetic_type', 'liminal_space')
@@ -466,7 +489,6 @@ def generate_image(prompt, index, aesthetic_type='liminal_space', color_palette=
     enhanced = build_image_prompt(prompt, aesthetic_type, color_palette)
     headers = {"Authorization": f"Bearer {HF_KEY}"}
 
-    # NOTE: router.huggingface.co 사용 (api-inference.huggingface.co는 구형 엔드포인트)
     models_cfg = [
         {
             "path": "black-forest-labs/FLUX.1-schnell",
@@ -501,7 +523,6 @@ def generate_image(prompt, index, aesthetic_type='liminal_space', color_palette=
     ]
 
     for cfg in models_cfg:
-        # FIX: 깨끗한 URL 직접 조합 (markdown 포맷 문자열 금지)
         url = f"https://router.huggingface.co/hf-inference/models/{cfg['path']}"
         for attempt in range(3):
             try:
@@ -531,7 +552,7 @@ def generate_image(prompt, index, aesthetic_type='liminal_space', color_palette=
 
 
 # ═══════════════════════════════════════════════════════════════════
-# 텔레그램 — FIX: URL을 f-string으로 직접 조합 (markdown 포맷 제거)
+# 텔레그램 전송
 # ═══════════════════════════════════════════════════════════════════
 
 def send_to_telegram(story_meta, title, desc, img_path):
@@ -544,7 +565,6 @@ def send_to_telegram(story_meta, title, desc, img_path):
     )[:1024]
 
     if img_path and os.path.exists(img_path):
-        # FIX: 깨끗한 URL 직접 조합
         url = f"https://api.telegram.org/bot{TG_TOKEN}/sendPhoto"
         with open(img_path, "rb") as photo:
             r = requests.post(
@@ -582,7 +602,7 @@ if __name__ == "__main__":
         free_models = get_active_free_models()
 
         # ── Phase 1: 스토리 컨셉 + 5단계 현실/비현실 아크 ────────────
-        story = generate_story_concept(free_models)
+        story = generate_story_concept(free_models, max_retries=3)
         if not story or not story.get('reality_arc'):
             print("❌ 스토리 컨셉 생성 실패. 종료.")
             exit(1)
