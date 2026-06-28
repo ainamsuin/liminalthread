@@ -1,4 +1,5 @@
 import os
+import re
 import requests
 import json
 import time
@@ -6,7 +7,6 @@ import time
 # ─── 환경 변수 정제 ──────────────────────────────────────────────────
 
 def sanitize_env(val):
-    """\r, \n, \t 등 제어 문자와 감싸진 따옴표 완전 제거."""
     if not val:
         return ""
     return val.strip().strip("'\"").strip()
@@ -16,19 +16,19 @@ HF_KEY         = sanitize_env(os.getenv("HF_API_KEY", ""))
 TG_TOKEN       = sanitize_env(os.getenv("TELEGRAM_BOT_TOKEN", ""))
 TG_CHAT_ID     = sanitize_env(os.getenv("TELEGRAM_CHAT_ID", ""))
 
-# "bot" 프리픽스 자동 제거 (일부 환경에서 토큰 앞에 붙어 오는 경우 대비)
 if TG_TOKEN.lower().startswith("bot") and len(TG_TOKEN) > 3 and TG_TOKEN[3].isdigit():
     TG_TOKEN = TG_TOKEN[3:]
 
 
 # ═══════════════════════════════════════════════════════════════════
-# 🎨 미학 코덱스 — 장르별 정확한 정의
+# 🎨 미학 코덱스
 # ═══════════════════════════════════════════════════════════════════
 AESTHETIC_CODEX = {
     "liminal_space": (
         "Liminal spaces are TRANSITIONAL, IN-BETWEEN environments caught between uses: "
-        "empty school hallways after hours, hotel corridors at 3am, "
-        "mall food courts before opening, parking garages at dawn. "
+        "empty school gymnasiums after hours, hotel lobbies at 3am, "
+        "mall food courts before opening, parking structures at dawn, "
+        "empty swimming pools, airport gates between flights. "
         "VISUAL TRAITS: PRISTINE and INTACT (NO decay, NO ruin, NO damage), "
         "fluorescent or incandescent lighting, clean surfaces with minor normal wear. "
         "Eeriness from ABSENCE OF PEOPLE, not deterioration. "
@@ -36,8 +36,10 @@ AESTHETIC_CODEX = {
     ),
     "dreamcore": (
         "Dreamcore: intact nostalgic spaces from 1990s-2000s childhood, subtly 'off'. "
-        "Locations: Discovery Zone/Chuck E. Cheese indoor play areas, "
-        "suburban mall arcades, hotel indoor pools, elementary school gymnasiums. "
+        "Locations: Discovery Zone or Chuck E. Cheese indoor play areas, "
+        "suburban mall arcades, hotel indoor pools, elementary school cafeterias, "
+        "roller skating rinks, daycare interiors, community center game rooms, "
+        "bowling alleys, laundromats, VHS rental stores. "
         "VISUAL TRAITS: soft pastels (dusty pink #D4A5A5, mint #98D8C8, pale yellow #F5E6A3, baby blue), "
         "warm diffused non-directional light, NO harsh shadows, "
         "low-fi VHS grain. Everything CLEAN and INTACT — familiar yet subtly wrong."
@@ -48,6 +50,7 @@ AESTHETIC_CODEX = {
         "Level 5: infinite hotel lobby, maroon-gold carpet, yellow chandeliers. "
         "Level 37 (Poolrooms): infinite indoor pools, cyan/mint tiles, still water, "
         "diffused light of unknown origin. "
+        "Level 94: infinite supermarket aisles, flickering overhead lights. "
         "VISUAL TRAITS: INTACT spaces (not ruined), infinite repetition, "
         "found-footage lo-fi grain, ambient fluorescent hum or water echo."
     )
@@ -64,7 +67,7 @@ IMAGE_STYLE_SUFFIX = {
     ),
     "backrooms": (
         "backrooms found footage photography, hyperrealistic, lo-fi grain, "
-        "intact infinite corridor, fluorescent sodium yellow lights, slightly overexposed"
+        "intact infinite space, fluorescent sodium yellow lights, slightly overexposed"
     )
 }
 
@@ -73,45 +76,134 @@ NEGATIVE_PROMPT = (
     "rubble, broken windows, peeling paint, mold, rust, post-apocalyptic, horror, "
     "people, human figure, silhouette, shadow of person, "
     "text, signs, watermark, logo, motion blur, camera shake, "
-    "illustration, painting, cartoon, anime, CGI render, harsh shadows"
+    "illustration, painting, cartoon, anime, CGI render, harsh shadows, "
+    "hallway, corridor, morphing, transforming, changing, melting, shifting, "
+    "motion, movement, dynamic, animated"
 )
 
-# 현실→비현실 5단계 아크 정의
+# ═══════════════════════════════════════════════════════════════════
+# 현실→비현실 10단계 아크
+#
+# 핵심 원칙: 각 공간은 이미 그 상태로 존재한다.
+# 영상 내에서 공간의 변형은 발생하지 않는다.
+# 카메라와 공간 모두 완전히 정적이다.
+# 각 단계는 "이 공간이 원래부터 이렇게 지어진/존재한 것"을 보여준다.
+# ═══════════════════════════════════════════════════════════════════
 UNREALITY_STAGES = {
     1: {
-        "name": "GROUNDED",
-        "guide": "Completely real and intact. Just empty. Normal lighting, no anomalies whatsoever. "
-                 "Eeriness comes purely from scale and absence of people."
+        "name": "GROUNDED_OPEN",
+        "guide": (
+            "A completely real, mundane space — just vast and empty. "
+            "Proportions are normal. Lighting is normal. Nothing is wrong. "
+            "The eeriness comes only from scale and the total absence of people. "
+            "This space has always been exactly like this. "
+            "No impossible features of any kind. No transformation, no movement."
+        )
     },
     2: {
-        "name": "SUBTLE",
-        "guide": "One small impossibility that could almost be explained away: "
-                 "a corridor slightly too long to fit the building, "
-                 "an escalator running upward with no floor above, "
-                 "a reflection that is slightly out of sync."
+        "name": "GROUNDED_VAST",
+        "guide": (
+            "A real space whose proportions are slightly but undeniably off — "
+            "the ceiling is one floor too high, or the room is 20% wider than a room this shape should be. "
+            "This is how it was built. It has always been this size. "
+            "Nothing moves or changes. The wrongness is architectural and permanent."
+        )
     },
     3: {
-        "name": "UNCANNY",
-        "guide": "Clearly geometrically impossible but calm and beautiful: "
-                 "a room visible through a window on an interior wall, "
-                 "two identical corridors side by side that should not both exist, "
-                 "a skylight showing another ceiling rather than the sky."
+        "name": "SUBTLE_HINT",
+        "guide": (
+            "A space where one small architectural detail was built impossibly — "
+            "a window that faces an interior wall, a staircase with an extra landing that has no floor above, "
+            "a door at the end of a room that opens onto a solid wall. "
+            "This detail has always been here. The space does not react to it. "
+            "Everything else is normal. Nothing moves."
+        )
     },
     4: {
-        "name": "SURREAL",
-        "guide": "Multiple spatial impossibilities simultaneously visible: "
-                 "the corridor curves gently upward and continues infinitely, "
-                 "two doors on opposite walls open into the same room, "
-                 "the floor tiles form a pattern impossible to install in physical reality."
+        "name": "SUBTLE_CONFIRM",
+        "guide": (
+            "The camera is now positioned inside or adjacent to the impossible detail from stage 3. "
+            "The detail is clearly real and structural — it was built this way. "
+            "A second, smaller impossible architectural feature is visible in the far distance: "
+            "a room that appears to exist where the exterior wall should be, "
+            "or a ceiling fixture that casts no shadow despite bright light. "
+            "Both features are permanent. Neither moves."
+        )
     },
     5: {
-        "name": "VOID",
-        "guide": "Complete spatial dissolution — the space has become its own logic: "
-                 "the room extends beyond any visible boundary, "
-                 "light illuminates perfectly with no identifiable source, "
-                 "the architecture implies a scale no building could physically contain."
+        "name": "UNCANNY_SINGLE",
+        "guide": (
+            "One clear, calm geometric impossibility dominates the frame — "
+            "a room whose floor is also its ceiling with furniture on both surfaces, "
+            "two identical rooms that exist side by side where only one should fit, "
+            "a staircase that ascends in a closed loop. "
+            "This is how the space was built. It has always looked this way. "
+            "It is beautiful and eerie, not threatening. Nothing moves."
+        )
+    },
+    6: {
+        "name": "UNCANNY_SPREAD",
+        "guide": (
+            "Two separate geometric impossibilities are visible simultaneously in the same frame. "
+            "They coexist calmly. Light sources in different parts of the frame "
+            "cast shadows in conflicting directions — both shadow patterns are permanent, "
+            "not changing. The space was constructed with these contradictions built in. "
+            "Nothing moves or transforms."
+        )
+    },
+    7: {
+        "name": "SURREAL_FOLD",
+        "guide": (
+            "A topologically impossible space — like an Escher building made real. "
+            "The far end of the space connects back to its own entrance, visible from the wide shot. "
+            "Two surfaces that should be floor and ceiling are instead both floors. "
+            "This geometry has always existed in this space. "
+            "The space is calm and completely static. No movement, no transformation."
+        )
+    },
+    8: {
+        "name": "SURREAL_DEEP",
+        "guide": (
+            "Multiple physical laws are violated simultaneously in different zones of the frame, "
+            "but all violations are permanent and stable — "
+            "one zone has no visible light source yet is perfectly lit, "
+            "another zone shows furniture adhering to a surface at 90 degrees to gravity, "
+            "a third zone has a perfectly still reflection that shows a different room. "
+            "All of these have always been this way. Nothing moves."
+        )
+    },
+    9: {
+        "name": "VOID_APPROACH",
+        "guide": (
+            "The space extends visibly and permanently beyond any boundary "
+            "a physical building could contain — "
+            "floor and ceiling surfaces continue past the point where perspective should cause them to vanish, "
+            "implying infinite extension. "
+            "This is not a transformation — the space has always been this large. "
+            "Camera and space are both completely still."
+        )
+    },
+    10: {
+        "name": "VOID_COMPLETE",
+        "guide": (
+            "Total spatial dissolution — the space exists outside normal physics entirely. "
+            "There are no walls, only the permanent suggestion of walls extending in all directions forever. "
+            "Light exists with no source and has always done so. "
+            "The narrative anchor is the only recognizable, scale-giving object — "
+            "unchanged from Cut 1, perfectly ordinary, floating in the permanent infinite. "
+            "Nothing moves. This has always been the final state of this space."
+        )
     }
 }
+
+# 웹서치 쿼리 — 다양한 dreamcore 공간 발굴용
+DREAMCORE_SEARCH_QUERIES = [
+    "dreamcore aesthetic spaces 2024 types",
+    "liminal space types rooms photography",
+    "backrooms levels aesthetic spaces",
+    "dreamcore nostalgia interior spaces 90s 2000s",
+    "eerie empty indoor spaces photography aesthetic"
+]
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -119,8 +211,6 @@ UNREALITY_STAGES = {
 # ═══════════════════════════════════════════════════════════════════
 
 def get_active_free_models():
-    """OpenRouter 무료 모델 목록 조회 및 성능순 정렬.
-    코딩 전용 모델(coder, coding) 및 JSON 구조 응답 불안정 모델(nemotron)은 제외."""
     url = "https://openrouter.ai/api/v1/models"
     try:
         r = requests.get(url, timeout=10)
@@ -129,7 +219,6 @@ def get_active_free_models():
 
             def score(m):
                 mid, ctx = m['id'].lower(), m.get('context_length', 0)
-                # FIX: 코딩 전용 + JSON 구조 응답 불안정 모델 제외
                 if any(x in mid for x in ('coder', 'coding', 'code-', 'nemotron')):
                     return (-1, 0)
                 s = 0
@@ -147,9 +236,8 @@ def get_active_free_models():
                 return (s, ctx)
 
             free.sort(key=score, reverse=True)
-            # score < 0 (제외 대상) 필터링
             ids = [m['id'] for m in free if score(m)[0] >= 0]
-            print(f"🎯 1순위 모델: {ids[0] if ids else 'None'} | 총 {len(ids)}개 (제외 모델 필터링 완료)")
+            print(f"🎯 1순위 모델: {ids[0] if ids else 'None'} | 총 {len(ids)}개")
             return ids
     except Exception as e:
         print(f"⚠️ 모델 목록 오류: {e}")
@@ -157,12 +245,6 @@ def get_active_free_models():
 
 
 def call_openrouter(messages, free_models, require_json=True, max_tokens=2500):
-    """
-    공통 OpenRouter 호출. 429 시 동작:
-      1. 같은 모델에서 Retry-After(또는 60초) 대기 후 1회 재시도
-      2. 재시도도 429면 다음 모델로 이동
-      3. 전체 모델 소진 후에도 실패 시 → 90초 대기 후 상위 3개 모델로 최종 재시도
-    """
     url = "https://openrouter.ai/api/v1/chat/completions"
     headers = {
         "Authorization": f"Bearer {OPENROUTER_KEY}",
@@ -172,7 +254,6 @@ def call_openrouter(messages, free_models, require_json=True, max_tokens=2500):
     }
 
     def _try_model(mid):
-        """단일 모델 호출. 성공 시 content 문자열, 429 시 'RATE_LIMIT', 기타 실패 시 None 반환."""
         body = {"model": mid, "messages": messages, "max_tokens": max_tokens}
         if require_json:
             body["response_format"] = {"type": "json_object"}
@@ -182,9 +263,8 @@ def call_openrouter(messages, free_models, require_json=True, max_tokens=2500):
                 content = r.json()['choices'][0]['message']['content'].strip()
                 if content.startswith("```"):
                     content = content.replace("```json", "").replace("```", "").strip()
-                # FIX: 너무 짧은 응답 = 불완전 JSON → 무효 처리
                 if len(content) < 80:
-                    print(f"  ⚠️ 응답 너무 짧음 ({len(content)}자) [{mid}] — 다음 모델로")
+                    print(f"  ⚠️ 응답 너무 짧음 ({len(content)}자) [{mid}]")
                     return None
                 return content
             if r.status_code == 429:
@@ -195,13 +275,11 @@ def call_openrouter(messages, free_models, require_json=True, max_tokens=2500):
             print(f"  ⚠️ 예외 [{mid}]: {e}")
             return None
 
-    # 1차: 전체 모델 순환 (429 시 모델당 1회 대기 후 재시도)
     for mid in free_models:
         print(f"  🔄 [{mid}]")
         result = _try_model(mid)
 
         if isinstance(result, tuple) and result[0] == 'RATE_LIMIT':
-            # 429: Retry-After 헤더 또는 기본 60초 대기 후 같은 모델 재시도
             try:
                 wait = min(int(result[1]), 90) if result[1] else 60
             except (ValueError, TypeError):
@@ -216,15 +294,14 @@ def call_openrouter(messages, free_models, require_json=True, max_tokens=2500):
             if isinstance(result, str):
                 print(f"  ✅ 재시도 성공 ({len(result)}자)")
                 return result
-            continue  # None이면 다음 모델
+            continue
 
         if isinstance(result, str):
             print(f"  ✅ 응답 ({len(result)}자)")
             return result
 
-        time.sleep(3)  # 비-429 실패 후 다음 모델 전 잠깐 대기
+        time.sleep(3)
 
-    # 2차: 전체 순환 실패 → 90초 대기 후 상위 3개 모델로 최종 재시도
     print("  ⏳ 전체 모델 소진. 90초 대기 후 최종 재시도...")
     time.sleep(90)
     for mid in free_models[:3]:
@@ -240,100 +317,257 @@ def call_openrouter(messages, free_models, require_json=True, max_tokens=2500):
 
 
 # ═══════════════════════════════════════════════════════════════════
-# Phase 1 — 스토리 컨셉 + 5단계 현실/비현실 아크 생성
+# Phase 0 — 웹서치: 다양한 dreamcore 공간 레퍼런스 수집
+# DuckDuckGo Instant Answer API (무료, API키 불필요)
 # ═══════════════════════════════════════════════════════════════════
 
-def generate_story_concept(free_models, max_retries=3):
+def search_dreamcore_web(free_models):
     """
-    단일 내러티브 컨셉과 5단계 현실→비현실 공간 아크를 생성.
-    각 단계는 공간 연결(visible_next_zone) + 비현실 요소(unreality_element)를 가짐.
-    FIX: reality_arc 5단계 완전성 검증 + 실패 시 재시도 루프 추가.
+    DuckDuckGo로 dreamcore/liminal 공간 타입 검색 후
+    LLM으로 다양한 공간 목록 추출.
+    실패 시 빈 리스트 반환 (이후 LLM 내부 지식으로 대체).
     """
+    print("\n🔍 [Phase 0] 웹서치: dreamcore 공간 레퍼런스 수집 중...")
+    raw_snippets = []
+
+    for q in DREAMCORE_SEARCH_QUERIES:
+        try:
+            enc_q = requests.utils.quote(q)
+            url = f"https://api.duckduckgo.com/?q={enc_q}&format=json&no_html=1&skip_disambig=1"
+            r = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=12)
+            if r.status_code == 200:
+                data = r.json()
+                abstract = data.get('AbstractText', '')
+                if abstract:
+                    raw_snippets.append(abstract[:350])
+                for topic in data.get('RelatedTopics', [])[:6]:
+                    if isinstance(topic, dict):
+                        text = topic.get('Text', '')
+                        if text:
+                            raw_snippets.append(text[:180])
+            time.sleep(1.5)
+        except Exception as e:
+            print(f"  ⚠️ 검색 오류 ({q[:30]}): {e}")
+
+    if not raw_snippets:
+        print("  ⚠️ 웹서치 결과 없음 — LLM 내부 지식으로 진행")
+        return []
+
+    print(f"  📄 원시 스니펫 {len(raw_snippets)}개 수집. LLM으로 공간 타입 추출 중...")
+
+    combined = "\n---\n".join(raw_snippets[:25])
+    prompt = f"""You are a dreamcore/liminal space expert.
+From the following web search snippets about dreamcore and liminal aesthetics,
+extract and list 20 SPECIFIC, DIVERSE indoor space types that appear or are referenced.
+
+RULES:
+- No hallways, no corridors — these are banned
+- Focus on ROOMS, AREAS, ZONES with distinct character
+- Include unusual, specific, creative space types
+- Mix familiar (90s arcade) with obscure (supermarket back room, hotel ice machine alcove)
+- Cover a wide range of scale, from intimate to vast
+
+Web search data:
+{combined}
+
+Output ONLY valid JSON:
+{{"space_types": ["specific space type 1", "specific space type 2", ...]}}"""
+
+    content = call_openrouter(
+        [{"role": "user", "content": prompt}],
+        free_models, require_json=True, max_tokens=600
+    )
+    if content:
+        try:
+            types = json.loads(content).get('space_types', [])
+            # hallway/corridor 방어 필터
+            types = [t for t in types if not any(
+                w in t.lower() for w in ('hallway', 'corridor', 'hall way')
+            )]
+            print(f"  ✅ 공간 타입 {len(types)}개 추출: {', '.join(types[:5])}...")
+            return types
+        except Exception as e:
+            print(f"  ⚠️ 추출 파싱 오류: {e}")
+
+    return []
+
+
+# ═══════════════════════════════════════════════════════════════════
+# Phase 1 — 스토리 컨셉 + 10단계 아크
+# ═══════════════════════════════════════════════════════════════════
+
+def generate_story_concept(free_models, web_space_refs=None, max_retries=3):
     stage_guide = "\n".join(
         f"  Stage {k} ({v['name']}): {v['guide']}"
         for k, v in UNREALITY_STAGES.items()
     )
     aesthetic_summary = "\n".join(
-        f"  [{k}]: {v[:200]}..." for k, v in AESTHETIC_CODEX.items()
+        f"  [{k}]: {v[:220]}..." for k, v in AESTHETIC_CODEX.items()
     )
+
+    # 웹서치 결과 주입
+    if web_space_refs:
+        web_ref_block = (
+            f"WEB-SOURCED SPACE TYPES (use these as creative inspiration — "
+            f"pick from this list or create variations, but never repeat the same type twice):\n"
+            + "\n".join(f"  - {t}" for t in web_space_refs[:20])
+        )
+    else:
+        web_ref_block = (
+            "SPACE INSPIRATION (use diverse, creative, specific space types — "
+            "no hallways, no corridors. "
+            "Examples: indoor bowling alley, empty laundromat, roller skating rink, "
+            "hotel indoor pool, arcade game room, elementary cafeteria, "
+            "community center gymnasium, VHS rental store, indoor mini-golf, "
+            "dental waiting room, motel lobby, supermarket produce section, "
+            "hotel ice machine alcove, daycare nap room, mall photo booth area)"
+        )
 
     prompt = f"""You are a narrative director specializing in liminal space, dreamcore, and backrooms.
 
-Design a single coherent story for a 5-shot static wide-shot video sequence.
+Design a single coherent story for a 10-shot static wide-shot video sequence.
 The sequence follows ONE CONTINUOUS JOURNEY through a single vast location,
 gradually drifting from ordinary reality into serene spatial impossibility.
 
-REALITY-TO-UNREALITY ARC (assign one stage per cut, in order):
+ABSOLUTE SPACE RULES:
+1. NO hallways. NO corridors. Each zone must be a ROOM or AREA with its own distinct character.
+2. Each space EXISTS in its current state permanently. It does not transform on camera.
+   The camera is static. The space is static. The wrongness is built into the architecture.
+3. Eeriness comes from what the space IS, not from anything happening or changing within it.
+4. All spaces are INTACT and CLEAN — not ruined, not decayed.
+
+NARRATIVE ANCHOR RULE:
+Choose ONE small, concrete, ordinary object that appears in EVERY cut across all 10 stages.
+Its position and state in each cut advances the story without anything physically changing.
+Examples: a single shopping cart, a red folding umbrella, an open book, a small potted plant.
+
+REALITY-TO-UNREALITY ARC (10 stages, one per cut):
 {stage_guide}
 
 AESTHETIC OPTIONS (choose ONE):
 {aesthetic_summary}
 
-SPATIAL RULES:
-- Each zone is physically adjacent to the next, with a clear sight line between them
-- All spaces are INTACT and CLEAN — eeriness from emptiness and geometry, NOT from decay or ruin
-- Camera: always extreme wide shot, perfectly static tripod, no movement
-
-Create a 5-stage spatial journey. The unreality_element MUST be:
-- A specific, concrete, architectural visual anomaly
-- Calmly visible in the far background of a static wide shot
-- Beautiful and eerie, not frightening
+{web_ref_block}
 
 Output ONLY valid JSON:
 {{
-  "series_title": "[poetic English title suggesting a gradual drift into unreality]",
-  "narrative_premise": "[2 sentences: who was here, what is this place, what is being slowly revealed as the viewer drifts deeper]",
+  "series_title": "[poetic English title]",
+  "narrative_premise": "[3 sentences: what this place is, what the anchor object means, what the journey reveals]",
   "chosen_culture": "[e.g., USA, SOUTH KOREA, JAPAN]",
-  "chosen_location": "[e.g., infinite suburban dead mall, subterranean poolroom complex]",
+  "chosen_location": "[e.g., abandoned indoor water park, infinite underground shopping complex]",
   "aesthetic_type": "[liminal_space | dreamcore | backrooms]",
-  "primary_color_palette": "[3-5 dominant colors with mood description]",
+  "primary_color_palette": "[3-5 dominant hex colors with mood description]",
+  "narrative_anchor": {{
+    "object": "[exact name of the recurring object]",
+    "origin_story": "[one sentence: why this object was left here]",
+    "final_state": "[one sentence: what seeing it alone in Cut 10 means]"
+  }},
   "reality_arc": [
     {{
       "stage": 1,
-      "stage_name": "GROUNDED",
-      "zone_name": "[architectural zone name]",
-      "zone_description": "[50-word: intact empty architecture, materials, specific lighting]",
+      "stage_name": "GROUNDED_OPEN",
+      "zone_name": "[specific room/area name — NOT a hallway or corridor]",
+      "zone_description": "[60-word: exact space type, intact architecture, materials, specific lighting]",
       "unreality_element": "none",
-      "visible_next_zone": "[which specific feature of stage 2 zone is visible from here — exact doorway, corridor end, or architectural detail]"
+      "anchor_state": "[exact position and appearance of the anchor in this cut]",
+      "story_beat": "[what this cut reveals — 1 sentence]",
+      "visible_next_zone": "[which architectural opening or feature connects to stage 2's zone]"
     }},
     {{
       "stage": 2,
-      "stage_name": "SUBTLE",
-      "zone_name": "[zone name]",
-      "zone_description": "[50-word zone description]",
-      "unreality_element": "[one specific small impossibility — concrete and architectural]",
-      "visible_next_zone": "[which feature of stage 3 is visible from here]"
+      "stage_name": "GROUNDED_VAST",
+      "zone_name": "[specific room/area — NOT a hallway or corridor]",
+      "zone_description": "[60 words]",
+      "unreality_element": "proportions permanently wrong — space is 20% too large in one dimension",
+      "anchor_state": "[anchor position — appears slightly farther than expected, space has always been this large]",
+      "story_beat": "[1 sentence]",
+      "visible_next_zone": "[connection to stage 3]"
     }},
     {{
       "stage": 3,
-      "stage_name": "UNCANNY",
-      "zone_name": "[zone name]",
-      "zone_description": "[50-word zone description]",
-      "unreality_element": "[clearly impossible geometry, calm and beautiful]",
-      "visible_next_zone": "[which feature of stage 4 is visible from here]"
+      "stage_name": "SUBTLE_HINT",
+      "zone_name": "[specific room/area — NOT a hallway or corridor]",
+      "zone_description": "[60 words]",
+      "unreality_element": "[one impossible architectural detail built into the space — permanent, static]",
+      "anchor_state": "[anchor position — shadow or reflection subtly wrong but unchanging]",
+      "story_beat": "[1 sentence]",
+      "visible_next_zone": "[connection to stage 4]"
     }},
     {{
       "stage": 4,
-      "stage_name": "SURREAL",
-      "zone_name": "[zone name]",
-      "zone_description": "[50-word zone description]",
-      "unreality_element": "[multiple spatial impossibilities visible simultaneously]",
-      "visible_next_zone": "[which feature of stage 5 is visible from here]"
+      "stage_name": "SUBTLE_CONFIRM",
+      "zone_name": "[specific room/area — NOT a hallway or corridor]",
+      "zone_description": "[60 words]",
+      "unreality_element": "[stage 3 anomaly now fills the foreground; a second impossible static detail in far distance]",
+      "anchor_state": "[anchor is in an impossible position — it was always here, no one moved it]",
+      "story_beat": "[1 sentence]",
+      "visible_next_zone": "[connection to stage 5]"
     }},
     {{
       "stage": 5,
-      "stage_name": "VOID",
-      "zone_name": "[zone name]",
-      "zone_description": "[50-word zone description]",
-      "unreality_element": "[total spatial dissolution — space extends beyond all possible physical boundaries]",
+      "stage_name": "UNCANNY_SINGLE",
+      "zone_name": "[specific room/area — NOT a hallway or corridor]",
+      "zone_description": "[60 words]",
+      "unreality_element": "[one clear impossible architecture that has always existed this way — beautiful and calm]",
+      "anchor_state": "[anchor duplicated — two identical copies, both real, equidistant]",
+      "story_beat": "[1 sentence]",
+      "visible_next_zone": "[connection to stage 6]"
+    }},
+    {{
+      "stage": 6,
+      "stage_name": "UNCANNY_SPREAD",
+      "zone_name": "[specific room/area — NOT a hallway or corridor]",
+      "zone_description": "[60 words]",
+      "unreality_element": "[two simultaneous impossible architectural features; light shadows permanently conflicting]",
+      "anchor_state": "[anchor multiplied to 3-4 copies, forming a static pattern]",
+      "story_beat": "[1 sentence]",
+      "visible_next_zone": "[connection to stage 7]"
+    }},
+    {{
+      "stage": 7,
+      "stage_name": "SURREAL_FOLD",
+      "zone_name": "[specific room/area — NOT a hallway or corridor]",
+      "zone_description": "[60 words]",
+      "unreality_element": "[Escher-like static topology — far end connects back to entrance, visible in single wide shot]",
+      "anchor_state": "[anchor tiled across every surface — floor wall ceiling — always been this way]",
+      "story_beat": "[1 sentence]",
+      "visible_next_zone": "[connection to stage 8]"
+    }},
+    {{
+      "stage": 8,
+      "stage_name": "SURREAL_DEEP",
+      "zone_name": "[specific room/area — NOT a hallway or corridor]",
+      "zone_description": "[60 words]",
+      "unreality_element": "[multiple physical laws permanently violated in separate static zones of the same frame]",
+      "anchor_state": "[anchor has become part of the architecture — built into the structure itself]",
+      "story_beat": "[1 sentence]",
+      "visible_next_zone": "[connection to stage 9]"
+    }},
+    {{
+      "stage": 9,
+      "stage_name": "VOID_APPROACH",
+      "zone_name": "[specific room/area — NOT a hallway or corridor]",
+      "zone_description": "[60 words]",
+      "unreality_element": "[space permanently extends beyond visible physical limits — has always been infinite]",
+      "anchor_state": "[anchor appears once, tiny, centered in infinite middle distance]",
+      "story_beat": "[1 sentence]",
+      "visible_next_zone": "[connection to stage 10]"
+    }},
+    {{
+      "stage": 10,
+      "stage_name": "VOID_COMPLETE",
+      "zone_name": "[specific room/area — NOT a hallway or corridor]",
+      "zone_description": "[60 words]",
+      "unreality_element": "[total static dissolution — space exists outside physics, has always been this way]",
+      "anchor_state": "[anchor alone in infinite space, unchanged from Cut 1 — the only real thing remaining]",
+      "story_beat": "[the final revelation — 1 sentence]",
       "visible_next_zone": ""
     }}
   ]
 }}"""
 
-    print("\n📖 [Phase 1] 스토리 컨셉 + 현실/비현실 아크 생성 중...")
+    print("\n📖 [Phase 1] 스토리 컨셉 + 10단계 아크 생성 중...")
 
-    # FIX: 최대 max_retries회 재시도, reality_arc 완전성(5단계) 검증
     for attempt in range(1, max_retries + 1):
         if attempt > 1:
             print(f"  🔄 Phase 1 재시도 {attempt}/{max_retries}...")
@@ -341,7 +575,7 @@ Output ONLY valid JSON:
 
         content = call_openrouter(
             [{"role": "user", "content": prompt}],
-            free_models, require_json=True, max_tokens=3000
+            free_models, require_json=True, max_tokens=4500
         )
 
         if not content:
@@ -350,144 +584,201 @@ Output ONLY valid JSON:
 
         try:
             sc = json.loads(content)
-
-            # FIX: reality_arc 5단계 완전성 검증
             arc = sc.get('reality_arc', [])
-            if len(arc) < 5:
-                print(f"  ⚠️ reality_arc {len(arc)}단계 — 5단계 필요. 재시도.")
+
+            if len(arc) < 10:
+                print(f"  ⚠️ reality_arc {len(arc)}단계 — 10단계 필요. 재시도.")
                 continue
 
-            # aesthetic_type 정규화 (대소문자/오타 방어)
+            # hallway/corridor 방어 필터
+            blocked = []
+            for stage in arc:
+                zn = stage.get('zone_name', '').lower()
+                zd = stage.get('zone_description', '').lower()
+                if any(w in zn or w in zd for w in ('hallway', 'corridor', 'hall way')):
+                    blocked.append(stage.get('stage'))
+            if blocked:
+                print(f"  ⚠️ hallway/corridor 감지 (stage {blocked}). 재시도.")
+                continue
+
             raw = sc.get('aesthetic_type', '').lower()
             if 'dreamcore' in raw:   sc['aesthetic_type'] = 'dreamcore'
             elif 'backroom' in raw:  sc['aesthetic_type'] = 'backrooms'
             else:                    sc['aesthetic_type'] = 'liminal_space'
 
+            anchor = sc.get('narrative_anchor', {})
             print(f"✅ 컨셉: '{sc.get('series_title')}' | {sc['aesthetic_type']} | {len(arc)}단계")
-            print(f"   내러티브: {sc.get('narrative_premise', '')[:120]}")
+            print(f"   내러티브: {sc.get('narrative_premise', '')[:150]}")
+            print(f"   앵커: {anchor.get('object', 'N/A')}")
             return sc
 
         except json.JSONDecodeError as e:
             print(f"  ❌ JSON 파싱 오류 (시도 {attempt}/{max_retries}): {e}")
 
-    print("❌ 스토리 컨셉 생성 실패 — 최대 재시도 초과")
+    print("❌ 스토리 컨셉 생성 실패")
     return None
 
 
 # ═══════════════════════════════════════════════════════════════════
-# Phase 2 — 순차 컷 생성 (이전 컷 description 체인 + 비현실 요소 강제)
+# Phase 2 — 순차 컷 생성
 # ═══════════════════════════════════════════════════════════════════
 
-def generate_cut(stage_data, prev_description, story_concept, free_models):
-    """
-    스토리 컨셉 + 이전 컷 description을 참조하여 단일 컷 생성.
-    unreality_element는 프레임 내 REQUIRED 시각 요소로 강제.
-    """
+def generate_cut(stage_data, prev_cuts_summary, story_concept, free_models):
     stage_num    = stage_data.get('stage', 1)
-    stage_name   = stage_data.get('stage_name', 'GROUNDED')
+    stage_name   = stage_data.get('stage_name', 'GROUNDED_OPEN')
     zone_name    = stage_data.get('zone_name', '')
     zone_desc    = stage_data.get('zone_description', '')
     unreality    = stage_data.get('unreality_element', 'none')
+    anchor_state = stage_data.get('anchor_state', '')
+    story_beat   = stage_data.get('story_beat', '')
     visible_next = stage_data.get('visible_next_zone', '')
 
     aesthetic_type  = story_concept.get('aesthetic_type', 'liminal_space')
     aesthetic_guide = AESTHETIC_CODEX.get(aesthetic_type, '')
     color_palette   = story_concept.get('primary_color_palette', '')
     premise         = story_concept.get('narrative_premise', '')
+    anchor_obj      = story_concept.get('narrative_anchor', {}).get('object', '')
+    anchor_origin   = story_concept.get('narrative_anchor', {}).get('origin_story', '')
+    anchor_final    = story_concept.get('narrative_anchor', {}).get('final_state', '')
 
-    # 이전 컷 → 현재 컷 공간 앵커 주입 (연결성 핵심)
-    if prev_description:
-        link_text = (
-            f"frame the exact space visible from Cut {stage_num - 1}: '{visible_next}'"
-            if visible_next
-            else f"conclude the drift, referencing the spatial scale of Cut {stage_num - 1}"
-        )
+    if prev_cuts_summary:
+        prev_last = prev_cuts_summary[-1]
+        older_cuts = prev_cuts_summary[:-1]
+
+        older_block = ""
+        if older_cuts:
+            older_lines = "\n".join(
+                f"  Cut {c['stage']} [{c['stage_name']}] — {c['zone_name']}: "
+                f"anchor={c['anchor_state']} | beat={c['story_beat']}"
+                for c in older_cuts
+            )
+            older_block = f"EARLIER CUTS (anchor trajectory):\n{older_lines}\n\n"
+
         continuity_block = (
-            f"SPATIAL CONTINUITY MANDATE:\n"
-            f"Cut {stage_num - 1} showed: {prev_description[:360]}...\n\n"
-            f"THIS cut MUST {link_text}.\n"
-            f"The description MUST open by naming which specific element from "
-            f"Cut {stage_num - 1} is now the primary foreground of this wide shot."
+            f"{older_block}"
+            f"PREVIOUS CUT — Cut {prev_last['stage']} [{prev_last['stage_name']}] "
+            f"in zone '{prev_last['zone_name']}' — FULL DESCRIPTION:\n"
+            f"{prev_last['description']}\n\n"
+            f"ANCHOR IN PREVIOUS CUT: {prev_last['anchor_state']}\n\n"
+            f"THIS CUT MUST:\n"
+            f"1. Open with the camera already positioned in the space that was visible "
+            f"at the end of Cut {prev_last['stage']} — specifically: '{visible_next}'\n"
+            f"2. The first architectural element described must be that connecting feature.\n"
+            f"3. The spatial journey feels like a single continuous walk — "
+            f"the viewer moved from the previous zone into this one.\n"
+            f"4. The anchor must be in the exact state: {anchor_state}"
         )
-        desc_opening = (
-            f"MUST begin by explicitly stating which architectural element from "
-            f"Cut {stage_num - 1} is now foregrounded in this static extreme wide shot."
+        desc_opening_rule = (
+            f"Open with the connecting feature from Cut {prev_last['stage']} "
+            f"now in the foreground. Then describe '{zone_name}'."
         )
     else:
-        continuity_block = "This is the OPENING SHOT. Establish the grand scale, color palette, and atmosphere."
-        desc_opening = "Establish the architectural scale, dominant colors, and the mood of this vast empty space."
+        continuity_block = (
+            "This is the OPENING SHOT (Cut 1). "
+            "Establish the exact space, its full scale, color palette, "
+            "and the narrative anchor's precise mundane position. "
+            "This should feel like the most ordinary, real version of this space possible."
+        )
+        desc_opening_rule = (
+            "Establish: exact space type and architecture, dominant colors and materials, "
+            "specific lighting (color temp + fixture type + positions), "
+            "and the narrative anchor's precise position. Tone: completely real and mundane, but vast and empty."
+        )
 
-    # Python 3.10 f-string 호환: 조건식을 변수로 미리 분리
-    video_unreality = unreality if unreality.lower() != 'none' else 'purely realistic empty space'
-
-    # 비현실 요소 지시
     if unreality and unreality.lower() != 'none':
         unreality_block = (
-            f"UNREALITY ELEMENT — REQUIRED VISUAL (Stage {stage_num}: {stage_name}):\n"
+            f"EXISTING SPATIAL ANOMALY (Stage {stage_num}: {stage_name}):\n"
             f"{unreality}\n\n"
-            f"This anomaly MUST be calmly and clearly visible somewhere in the extreme wide shot. "
-            f"It should feel inevitable and serene — the space ACCEPTS this impossibility. "
-            f"It is not frightening. It is simply how this place has always been."
+            f"CRITICAL: This anomaly is PERMANENT and STATIC — the space was built or exists this way. "
+            f"Nothing transforms, morphs, or changes within the frame. "
+            f"The camera is fixed. The space is fixed. The wrongness is architectural fact."
         )
     else:
         unreality_block = (
-            f"REALITY BASELINE (Stage 1 — GROUNDED):\n"
-            f"This frame contains NO impossible elements. "
-            f"It is completely real: intact, clean, functioning, just empty. "
-            f"The unsettling quality comes entirely from scale and the absence of people."
+            f"NO ANOMALY (Stage 1 — fully real):\n"
+            f"Zero impossible features. Everything is normal architecture. "
+            f"Camera and space are both completely static."
         )
 
-    prompt = f"""Generate Cut {stage_num} of 5 for a liminal space narrative video series.
+    video_unreality = unreality if unreality.lower() != 'none' else 'purely realistic static empty space'
 
+    prompt = f"""You are generating Cut {stage_num} of 10 for a liminal space narrative series.
+
+═══ SERIES CONTEXT ═══
 NARRATIVE PREMISE: {premise}
 AESTHETIC: {aesthetic_type.upper()} — {aesthetic_guide}
 COLOR PALETTE: {color_palette}
-ZONE: {zone_name} — {zone_desc}
 
+NARRATIVE ANCHOR (present in every cut):
+  Object: {anchor_obj}
+  Why it's here: {anchor_origin}
+  What it means in Cut 10: {anchor_final}
+
+═══ THIS CUT ═══
+ZONE: {zone_name}
+ZONE DETAILS: {zone_desc}
+ANCHOR THIS CUT: {anchor_state}
+STORY BEAT: {story_beat}
+NEXT ZONE (visible from this cut): {visible_next}
+
+═══ CONTINUITY ═══
 {continuity_block}
 
+═══ SPATIAL ANOMALY ═══
 {unreality_block}
 
-ABSOLUTE RULES:
-1. Camera: 100% STATIC TRIPOD. EXTREME WIDE SHOT. Zero movement — no dolly, pan, zoom, or tilt.
-2. Space: INTACT, CLEAN, FUNCTIONING. Zero decay / ruin / damage / graffiti / broken fixtures.
-   Empty because people have left or never arrived, not because it has deteriorated.
-3. No people, silhouettes, or shadows of people anywhere.
-4. No visible text, signs, or numbers.
-5. Tone: eerie and beautiful, dreamlike, NOT horrifying or violent.
+═══ ABSOLUTE RULES ═══
+1. Camera: 100% STATIC TRIPOD. EXTREME WIDE SHOT. Zero movement of any kind.
+2. Space: STATIC. Nothing transforms, morphs, or changes within the frame.
+   The space exists in its current state permanently. It was always this way.
+3. Space: INTACT, CLEAN, FUNCTIONING. Zero decay, ruin, or damage.
+4. No people, silhouettes, or shadows of people.
+5. No visible text, signs, or numbers.
+6. No hallways. No corridors. The zone must be a distinct room or area.
+7. Tone: eerie and beautiful, dreamlike, calm — NOT horrifying or violent.
+8. Anchor must be explicitly placed: {anchor_state}
 
 Output ONLY valid JSON:
 {{
-  "title": "Cut {stage_num} [{stage_name}]: {zone_name} — [Specific Visual Anchor]",
-  "description": "[~900 character English narrative. {desc_opening} Then: exact intact materials visible from extreme distance, specific lighting (color temp + source positions), how the unreality element reads from the far static vantage, ambient sound that draws attention inward. Tone: calm, beautiful, quietly wrong.]",
-  "video_prompt": "[Detailed text-to-image prompt: static extreme wide shot, {aesthetic_type} aesthetic, {color_palette}, intact clean empty architecture, {video_unreality}, film grain, no people, no text, NOT ruined, NOT decayed, serene and eerie]"
+  "title": "Cut {stage_num}/10 [{stage_name}]: {zone_name}",
+  "description": "[1000-1200 character English narrative. {desc_opening_rule} Then: exact architecture seen from static extreme wide distance, specific lighting details, the narrative anchor's current position and state, the spatial anomaly as a calm permanent fact (if any), one detail that threads back to the previous cut. Tone: calm, vast, beautiful, quietly wrong.]",
+  "video_prompt": "[Detailed text-to-image prompt: static extreme wide shot, {aesthetic_type} aesthetic, {color_palette}, intact clean empty architecture in {zone_name}, {video_unreality}, {anchor_obj} visible, film grain, no people, no text, NOT ruined, no hallway, no corridor, serene and eerie, perfectly still]"
 }}"""
 
     content = call_openrouter(
         [{"role": "user", "content": prompt}],
-        free_models, require_json=True, max_tokens=2000
+        free_models, require_json=True, max_tokens=2500
     )
     if not content:
         return None
     try:
-        return json.loads(content)
+        result = json.loads(content)
+        # 체인 전달용 메타데이터 주입
+        result['stage']       = stage_num
+        result['stage_name']  = stage_name
+        result['zone_name']   = zone_name
+        result['anchor_state'] = anchor_state
+        result['story_beat']  = story_beat
+        return result
     except json.JSONDecodeError as e:
         print(f"  ❌ Cut {stage_num} JSON 파싱 오류: {e}")
         return None
 
 
 # ═══════════════════════════════════════════════════════════════════
-# 이미지 생성 — 강화 프롬프트 + negative prompt + 모델별 최적 파라미터
+# 이미지 생성
 # ═══════════════════════════════════════════════════════════════════
 
 def build_image_prompt(raw_prompt, aesthetic_type, color_palette):
     style = IMAGE_STYLE_SUFFIX.get(aesthetic_type, IMAGE_STYLE_SUFFIX['liminal_space'])
-    return f"{raw_prompt}, {style}, dominant colors: {color_palette}"
+    # hallway/corridor 방어 필터
+    clean = re.sub(r'\b(hallway|corridor|hall way)\b', '', raw_prompt, flags=re.IGNORECASE)
+    return f"{clean.strip()}, {style}, dominant colors: {color_palette}"
 
 
 def generate_image(prompt, index, aesthetic_type='liminal_space', color_palette=''):
     if not prompt or not isinstance(prompt, str):
-        prompt = "A distant perfectly static extreme wide tripod shot of a massive empty liminal space interior."
+        prompt = "A perfectly static extreme wide tripod shot of a massive empty dreamcore interior space."
 
     enhanced = build_image_prompt(prompt, aesthetic_type, color_palette)
     headers = {"Authorization": f"Bearer {HF_KEY}"}
@@ -495,7 +786,6 @@ def generate_image(prompt, index, aesthetic_type='liminal_space', color_palette=
     models_cfg = [
         {
             "path": "black-forest-labs/FLUX.1-schnell",
-            # FLUX.1-schnell: CFG-free distilled model → guidance_scale=0.0 필수
             "payload": {
                 "inputs": enhanced,
                 "parameters": {"num_inference_steps": 4, "guidance_scale": 0.0}
@@ -558,28 +848,24 @@ def generate_image(prompt, index, aesthetic_type='liminal_space', color_palette=
 # 텔레그램 전송
 # ═══════════════════════════════════════════════════════════════════
 
-def send_to_telegram(story_meta, title, desc, img_path):
-    """
-    사진과 전체 설명을 분리 전송하여 1024자 caption 제한 완전 해제.
-      1) 이미지 -> caption은 제목만 (짧게 유지)
-      2) 전체 설명 텍스트 -> sendMessage (최대 4096자)
-    이미지가 없을 경우 전체 내용을 단일 텍스트 메시지로 전송.
-    """
+def send_to_telegram(story_meta, title, desc, img_path, cut_num=None, total=10):
     short_caption = (
-        f"\U0001f300 *{story_meta['series_title']}*\n"
-        f"\U0001f4cd {story_meta['culture']} \u2014 {story_meta['location']}\n"
-        f"\U0001f3ac *{title}*"
+        f"🌀 *{story_meta['series_title']}*\n"
+        f"📍 {story_meta['culture']} — {story_meta['location']}\n"
+        f"🎬 *{title}*"
     )
+    if cut_num:
+        short_caption += f"\n[{cut_num}/{total}]"
 
     full_text = (
-        f"\U0001f4ad {story_meta['premise']}\n\n"
+        f"💭 {story_meta['premise']}\n\n"
         f"{desc}"
     )
 
     def _send(url, **kwargs):
         r = requests.post(url, **kwargs)
         if r.status_code != 200:
-            print(f"  \u274c 전송 실패 ({r.status_code}): {r.text}")
+            print(f"  ❌ 전송 실패 ({r.status_code}): {r.text}")
             return False
         return True
 
@@ -596,13 +882,13 @@ def send_to_telegram(story_meta, title, desc, img_path):
                 data={"chat_id": TG_CHAT_ID, "text": full_text, "parse_mode": "Markdown"}
             )
     else:
-        full_fallback = f"{short_caption}\n\n{full_text}\n\n\u26a0\ufe0f 이미지 생성 실패"
+        full_fallback = f"{short_caption}\n\n{full_text}\n\n⚠️ 이미지 생성 실패"
         _send(
             f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage",
             data={"chat_id": TG_CHAT_ID, "text": full_fallback, "parse_mode": "Markdown"}
         )
 
-    print(f"  \u2705 텔레그램 전송 완료")
+    print(f"  ✅ 텔레그램 전송 완료")
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -621,12 +907,16 @@ if __name__ == "__main__":
     try:
         free_models = get_active_free_models()
 
-        # ── Phase 1: 스토리 컨셉 + 5단계 현실/비현실 아크 ────────────
-        story = generate_story_concept(free_models, max_retries=3)
+        # ── Phase 0: 웹서치 — dreamcore 공간 레퍼런스 수집 ───────────
+        web_space_refs = search_dreamcore_web(free_models)
+
+        # ── Phase 1: 스토리 컨셉 + 10단계 아크 ───────────────────────
+        story = generate_story_concept(free_models, web_space_refs=web_space_refs, max_retries=3)
         if not story or not story.get('reality_arc'):
             print("❌ 스토리 컨셉 생성 실패. 종료.")
             exit(1)
 
+        anchor = story.get('narrative_anchor', {})
         story_meta = {
             "series_title":   story.get('series_title', 'The Drift'),
             "culture":        story.get('chosen_culture', 'Unknown'),
@@ -639,46 +929,58 @@ if __name__ == "__main__":
 
         print(f"\n📋 '{story_meta['series_title']}'")
         print(f"📍 {story_meta['culture']} / {story_meta['location']}")
-        print(f"🎨 {story_meta['aesthetic_type']} | {len(reality_arc)}단계 아크\n")
+        print(f"🎨 {story_meta['aesthetic_type']} | {len(reality_arc)}단계")
+        print(f"🔑 앵커: {anchor.get('object', 'N/A')}\n")
 
         # ── Phase 2: 순차 컷 생성 ─────────────────────────────────────
         scenes = []
-        prev_description = None  # 직전 컷 description → 다음 컷 공간 앵커로 주입
+        prev_cuts_summary = []
 
-        print("🎬 컷 순차 생성 시작\n")
+        print("🎬 컷 순차 생성 시작 (10컷)\n")
         for stage_data in reality_arc:
             stage_num  = stage_data.get('stage', '?')
             stage_name = stage_data.get('stage_name', '')
             zone_name  = stage_data.get('zone_name', '')
-            unreality  = stage_data.get('unreality_element', 'none')
+            anchor_st  = stage_data.get('anchor_state', '')
 
-            print(f"── Cut {stage_num} [{stage_name}]: {zone_name} ──")
-            if unreality and unreality.lower() != 'none':
-                print(f"   비현실 요소: {unreality[:90]}...")
+            print(f"── Cut {stage_num}/10 [{stage_name}]: {zone_name} ──")
+            print(f"   앵커: {anchor_st[:80]}...")
 
-            cut = generate_cut(stage_data, prev_description, story, free_models)
+            cut = generate_cut(stage_data, prev_cuts_summary, story, free_models)
+
             if cut:
                 scenes.append(cut)
-                prev_description = cut.get('description', '')
-                print(f"  📝 완료 ({len(prev_description)}자) | 다음 컷 앵커 준비됨")
+                prev_cuts_summary.append({
+                    "stage":        stage_num,
+                    "stage_name":   stage_name,
+                    "zone_name":    zone_name,
+                    "description":  cut.get('description', ''),
+                    "anchor_state": anchor_st,
+                    "story_beat":   stage_data.get('story_beat', '')
+                })
+                print(f"  📝 완료 ({len(cut.get('description',''))}자)")
             else:
-                # 실패해도 prev_description 유지 → 체인 단절 방지
-                print(f"  ⚠️ 실패. prev_description 유지하여 연속성 보존.")
+                print(f"  ⚠️ 실패. 이전 체인 유지.")
             time.sleep(2)
 
         # ── Phase 3: 이미지 생성 + 텔레그램 전송 ─────────────────────
-        print(f"\n🖼️ 이미지 생성 + 전송 ({len(scenes)}컷)\n")
+        total_scenes = len(scenes)
+        print(f"\n🖼️ 이미지 생성 + 전송 ({total_scenes}컷)\n")
         for i, scene in enumerate(scenes):
-            print(f"── 이미지 {i + 1}/{len(scenes)} ──")
+            cut_num = scene.get('stage', i + 1)
+            print(f"── 이미지 {i + 1}/{total_scenes} (Cut {cut_num}) ──")
             img = generate_image(
                 scene['video_prompt'], i,
                 aesthetic_type=story_meta['aesthetic_type'],
                 color_palette=story_meta['color_palette']
             )
-            send_to_telegram(story_meta, scene['title'], scene['description'], img)
+            send_to_telegram(
+                story_meta, scene['title'], scene['description'],
+                img, cut_num=cut_num, total=total_scenes
+            )
             time.sleep(10)
 
-        print(f"\n🎉 완료! {len(scenes)}/5컷 처리됨.")
+        print(f"\n🎉 완료! {total_scenes}/10컷 처리됨.")
 
     except Exception as e:
         print(f"💥 에러: {e}")
